@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>নোটিশ বোর্ড · Firebase প্রস্তুত</title>
+
+    <!-- Firebase SDKs (v9 modular) -->
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // Firebase configuration (replace with your own)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDummyKeyReplaceWithYourOwn",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456",
+            measurementId: "G-XXXXXXXX"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // (Optional) Example: read notices from Firestore on load
+        async function loadNotices() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "notices"));
+                const grid = document.getElementById('noticeGrid');
+                // Clear existing static cards if you want dynamic only
+                // For demo, we keep static cards — but you can uncomment to replace
+                /*
+                grid.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'notice-card';
+                    card.innerHTML = `
+                        <img src="${data.imageUrl || 'images/notice1.jpg'}" alt="Notice" class="notice-img">
+                        <div class="notice-content">
+                            <div class="notice-date">${data.date || 'তারিখ নেই'}</div>
+                            <div class="notice-title">${data.title || 'শিরোনাম'}</div>
+                            <div class="notice-text">${data.text || 'বিবরণ'}</div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                */
+                console.log("Firebase connected & ready. Notices loaded (static fallback aktif)");
+            } catch (error) {
+                console.error("Firebase read error:", error);
+            }
+        }
+
+        // Call loadNotices if you want to fetch from Firestore
+        // loadNotices();
+
+        // Expose db for console debugging (optional)
+        window.__firebaseDb = db;
+        console.log("✅ Firebase initialized. DB ready.");
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 20px;
+            background:
+                radial-gradient(circle at top left, #60a5fa 0%, transparent 30%),
+                radial-gradient(circle at bottom right, #818cf8 0%, transparent 30%),
+                linear-gradient(135deg, #f8fafc, #e0e7ff, #f1f5f9);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            color: #0f172a;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #475569;
+            font-weight: 400;
+            background: rgba(255, 255, 255, 0.5);
+            display: inline-block;
+            padding: 6px 24px;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+        }
+
+        .notice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .notice-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .notice-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.10);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .notice-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s;
+        }
+
+        .notice-card:hover .notice-img {
+            transform: scale(1.02);
+        }
+
+        .notice-content {
+            padding: 22px 22px 26px;
+        }
+
+        .notice-date {
+            display: inline-block;
+            padding: 6px 16px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .notice-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 10px 0 8px;
+            line-height: 1.3;
+        }
+
+        .notice-text {
+            color: #334155;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* extra: firebase badge */
+        .fb-badge {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+            color: #64748b;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(6px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .notice-grid {
+                grid-template-columns: 1fr;
+            }
+            .notice-img {
+                height: 200px;
+            }
+            .notice-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="header">
+            <h1>📢 নোটিশ বোর্ড</h1>
+            <p>সকল গুরুত্বপূর্ণ নোটিশ এখানে প্রকাশ করা হবে</p>
+        </div>
+
+        <!-- Notice Grid with id for Firebase dynamic injection -->
+        <div class="notice-grid" id="noticeGrid">
+
+            <!-- Notice 1 (static, but Firebase ready) -->
+            <div class="notice-card">
+                <a href="https://i.ibb.co.com/27wQ20bG/Whats-App-Image-2026-07-01-at-11-14-51-AM.jpg" target="_blank">
+                    <img src="https://i.ibb.co.com/27wQ20bG/Whats-App-Image-2026-07-01-at-11-14-51-AM.jpg" alt="ছুটির ঘোষণা" class="notice-img">
+                </a>
+                <div class="notice-content">
+                    <div class="notice-date">১ জুলাই ২০২৬</div>
+                    <div class="notice-title">ছুটির ঘোষণা</div>
+                    <div class="notice-text">এইচএসসি পরীক্ষার দিনগুলোতে কলেজ বন্ধ থাকবে।</div>
+                </div>
+            </div>
+
+            <!-- Notice 2 (static) -->
+            <div class="notice-card">
+                <img src="images/notice1.jpg" alt="অ্যাসাইনমেন্ট" class="notice-img" onerror="this.src='https://i.ibb.co.com/27wQ20bG/Whats-App-Image-2026-07-01-at-11-14-51-AM.jpg'">
+                <div class="notice-content">
+                    <div class="notice-date">২৯ জুন ২০২৬</div>
+                    <div class="notice-title">অ্যাসাইনমেন্ট জমা</div>
+                    <div class="notice-text">আগামী ১-৭-২০২৬ তারিখের মধ্যে I-B এর Assignment সকল শিক্ষার্থীকে জমা দিতে হবে।</div>
+                </div>
+            </div>
+
+            <!-- Notice 3 – additional placeholder to show grid (can be replaced by Firebase) -->
+            <div class="notice-card">
+                <img src="https://i.ibb.co.com/27wQ20bG/Whats-App-Image-2026-07-01-at-11-14-51-AM.jpg" alt="পরীক্ষার রুটিন" class="notice-img">
+                <div class="notice-content">
+                    <div class="notice-date">২৮ জুন ২০২৬</div>
+                    <div class="notice-title">পরীক্ষার রুটিন</div>
+                    <div class="notice-text">এইচএসসি পরীক্ষার পূর্ণাঙ্গ রুটিন প্রকাশিত হয়েছে। ওয়েবসাইটে দেখুন।</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Firebase status + ready indicator -->
+        <div class="footer">
+            <span class="fb-badge">🔥 Firebase সংযুক্ত · ডেটা পড়তে প্রস্তুত</span>
+        </div>
+
+    </div>
+
+    <!-- tiny inline script to show Firebase readiness (console) -->
+    <script>
+        (function() {
+            // just a visual confirmation in console
+            console.log("🚀 Notice Board · Firebase integration ready (SDK loaded in module)");
+            console.log("ℹ️  firebaseConfig প্রতিস্থাপন করুন আপনার নিজের config দিয়ে।");
+            console.log("📌 'loadNotices()' ফাংশন কল করলে Firestore থেকে নোটিশ আসবে (কমেন্ট করা আছে)");
+        })();
+    </script>
+
+</body>
+</html>

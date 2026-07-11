@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Our Teachers · Firebase</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: #f5f7fb;
+    }
+
+    /* Header */
+    .hero {
+      background: linear-gradient(rgba(0, 20, 70, .85), rgba(0, 20, 70, .85)),
+        url("https://images.unsplash.com/photo-1524995997946-a1c2e315a42f");
+      background-size: cover;
+      background-position: center;
+      padding: 70px 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 60px;
+      font-family: Georgia, serif;
+    }
+
+    .hero span {
+      color: #f7c948;
+    }
+
+    .line {
+      width: 120px;
+      height: 3px;
+      background: #f7c948;
+      margin: 15px auto;
+    }
+
+    .hero p {
+      font-size: 18px;
+      opacity: .9;
+    }
+
+    /* Cards grid */
+    .container {
+      max-width: 1400px;
+      margin: 50px auto;
+      padding: 0 70px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+      transition: .4s;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+    }
+
+    .info {
+      background: #26166f;
+      color: white;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+    }
+
+    .cap {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 55px;
+      height: 55px;
+      background: #26166f;
+      border: 3px solid #f7c948;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      color: #f7c948;
+    }
+
+    .info h2 {
+      font-size: 30px;
+      font-family: Georgia, serif;
+      margin-top: 10px;
+    }
+
+    .info h3 {
+      color: #f7c948;
+      margin: 8px 0 15px;
+    }
+
+    .info hr {
+      border: none;
+      height: 1px;
+      background: #f7c948;
+      width: 70%;
+      margin: 15px auto;
+    }
+
+    .contact {
+      text-align: left;
+      margin-top: 15px;
+    }
+
+    .contact p {
+      margin: 10px 0;
+      font-size: 15px;
+    }
+
+    .contact i {
+      color: #f7c948;
+      margin-right: 10px;
+    }
+
+    .social {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .social a {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, .1);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-decoration: none;
+      transition: .3s;
+    }
+
+    .social a:hover {
+      background: #f7c948;
+      color: #26166f;
+    }
+
+    /* Footer Quote */
+    .quote {
+      text-align: center;
+      padding: 40px 20px;
+      color: #1c2b5a;
+      font-style: italic;
+      font-size: 22px;
+    }
+
+    .footer {
+      background: #001a5c;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    /* loading / empty state */
+    .loading-message {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px;
+      font-size: 20px;
+      color: #26166f;
+    }
+
+    @media (max-width:768px) {
+      .hero h1 {
+        font-size: 40px;
+      }
+      .container {
+        padding: 0 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <h1>Our <span>Teachers</span></h1>
+    <div class="line"></div>
+    <p>Meet Our Experienced and Dedicated Faculty Members</p>
+  </section>
+
+  <!-- Cards will be injected here by Firebase -->
+  <div class="container" id="teacherContainer">
+    <div class="loading-message"><i class="fas fa-spinner fa-pulse"></i> Loading teachers...</div>
+  </div>
+
+  <div class="quote">
+    "Education is the most powerful weapon which you can use to change the world."<br>
+    — Nelson Mandela
+  </div>
+
+  <div class="footer">
+    © 2026 University Name. All Rights Reserved.
+  </div>
+
+  <script>
+    // ============================================================
+    //  FIREBASE CONFIGURATION – replace with your own project config
+    // ============================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyCEQ31b4AnS3QgXOkNaLN0cbBh0WTAzz6k",
+    authDomain: "hbuc-teachcer.firebaseapp.com",
+    databaseURL: "https://hbuc-teachcer-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "hbuc-teachcer",
+    storageBucket: "hbuc-teachcer.firebasestorage.app",
+    messagingSenderId: "482109695307",
+    appId: "1:482109695307:web:072d65e66f3a61fdcd34ce",
+};
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Reference to the "teachers" node in the database
+    const teachersRef = database.ref('teachers');
+
+    // Container where cards will be rendered
+    const container = document.getElementById('teacherContainer');
+
+    // ============================================================
+    //  RENDER FUNCTION: builds card HTML from teacher object
+    // ============================================================
+    function renderTeacherCard(key, teacher) {
+      // fallback values if some fields are missing
+      const name = teacher.name || 'Name unavailable';
+      const title = teacher.title || 'Faculty';
+      const subject = teacher.subject || '';
+      const phone = teacher.phone || '';
+      const email = teacher.email || '';
+      const department = teacher.department || 'Department';
+      const image = teacher.image || 'https://hbuc.edu.bd/admin/uploads/nu-theme-1/website/slider/691446eccd80f6098.jpeg';
+      // social links – optional, we keep them as #
+      const facebook = teacher.facebook || '#';
+      const linkedin = teacher.linkedin || '#';
+      const emailLink = teacher.emailLink || `mailto:${email}`;
+
+      return `
+        <div class="card" data-key="${key}">
+          <img src="${image}" alt="${name}" loading="lazy">
+          <div class="info">
+            <div class="cap"><i class="fas fa-graduation-cap"></i></div>
+            <h2>${name}</h2>
+            <h3>${title}</h3>
+            ${subject ? `<h6>${subject}</h6>` : ''}
+            <hr>
+            <div class="contact">
+              ${phone ? `<p><i class="fas fa-phone"></i>${phone}</p>` : ''}
+              ${email ? `<p><i class="fas fa-envelope"></i>${email}</p>` : ''}
+              <p><i class="fas fa-location-dot"></i>${department}</p>
+            </div>
+            <div class="social">
+              <a href="${facebook}" target="_blank"><i class="fab fa-facebook-f"></i></a>
+              <a href="${linkedin}" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+              <a href="${emailLink}" target="_blank"><i class="fas fa-envelope"></i></a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ============================================================
+    //  LISTEN TO FIREBASE REALTIME UPDATES
+    // ============================================================
+    teachersRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+
+      // clear container (remove loading message if any)
+      container.innerHTML = '';
+
+      if (!data) {
+        // no data: show a friendly message
+        container.innerHTML = `<div class="loading-message">📚 No teacher data found. Add some!</div>`;
+        return;
+      }
+
+      // data is an object with keys (push IDs) and each teacher object
+      const keys = Object.keys(data);
+
+      // Build HTML for each teacher (order: as they come from Firebase)
+      let cardsHtml = '';
+      keys.forEach(key => {
+        const teacher = data[key];
+        cardsHtml += renderTeacherCard(key, teacher);
+      });
+
+      container.innerHTML = cardsHtml;
+    });
+
+    // Optional: handle errors (e.g., permission denied)
+    teachersRef.on('error', (error) => {
+      console.warn('Firebase read error:', error);
+      container.innerHTML = `
+        <div class="loading-message" style="color:#b00020;">
+          ⚠️ Could not load teachers. Check Firebase config & rules.
+          <br><small>${error.message}</small>
+        </div>
+      `;
+    });
+
+    // ============================================================
+    //  (Optional)  SAMPLE DATA STRUCTURE – uncomment to seed your DB
+    //  Copy this object and use it as a guide for your Firebase data.
+    // ============================================================
+    /*
+    // To seed your database, you can run this once (or use the Firebase console)
+    const sampleTeachers = {
+      teacher1: {
+        name: "Shahadat Hossain",
+        title: "Assistant Professor",
+        subject: "Principles of finance",
+        phone: "01689801308",
+        email: "shahadat0834@gmail.com",
+        department: "Department of Finance",
+        image: "https://hbuc.edu.bd/admin/uploads/nu-theme-1/website/slider/691446eccd80f6098.jpeg",
+        facebook: "#",
+        linkedin: "#",
+        emailLink: "mailto:shahadat0834@gmail.com"
+      },
+      teacher2: {
+        name: "Farhana Jesmine",
+        title: "Assistant Professor",
+        subject: "Introduction to business",
+        phone: "01552351131",
+        email: "",
+        department: "Department of Finance",
+        image: "https://hbuc.edu.bd/admin/uploads/nu-theme-1/website/slider/63bdae6ca632f2456.jpg",
+        facebook: "#",
+        linkedin: "#",
+        emailLink: "mailto:"
+      },
+      // ... add more teachers
+    };
+    // To write: firebase.database().ref('teachers').set(sampleTeachers);
+    */
+    console.log('✅ Firebase connected. Waiting for teacher data...');
+  </script>
+</body>
+</html>

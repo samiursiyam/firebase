@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Directory · Firebase Ready</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 30px 20px 60px;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.18), transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(249, 115, 22, 0.15), transparent 45%),
+                radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.12), transparent 40%),
+                linear-gradient(135deg, #fefcfb, #f1f5f9);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.20), transparent 70%);
+            top: -150px;
+            left: -150px;
+            filter: blur(55px);
+            animation: float 10s infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(249, 115, 22, 0.18), transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            filter: blur(55px);
+            animation: float2 12s infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            from { transform: translate(0, 0); }
+            to { transform: translate(70px, 50px); }
+        }
+
+        @keyframes float2 {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-70px, -50px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px 30px;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            color: #0f172a;
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .title span {
+            color: #14b8a6;
+            text-shadow: 0 0 15px rgba(20, 184, 166, 0.25);
+        }
+
+        .search-wrapper {
+            flex: 1 1 280px;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-icon-svg {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            color: #14b8a6;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 16px 20px 16px 54px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 60px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            font-size: 1rem;
+            font-weight: 500;
+            color: #0f172a;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        #searchInput:focus {
+            border-color: #f97316;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 8px 28px rgba(249, 115, 22, 0.18);
+        }
+
+        .admin-bar {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 12px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px 24px;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            margin-bottom: 36px;
+        }
+
+        .admin-bar .badge {
+            font-weight: 700;
+            color: #14b8a6;
+            letter-spacing: 0.3px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .admin-bar .badge span {
+            background: #14b8a6;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+        }
+
+        .admin-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .admin-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: white;
+            color: #0f172a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .admin-btn:hover { background: #f1f5f9; transform: scale(0.97); }
+        .admin-btn.primary { background: #14b8a6; color: white; border-color: #14b8a6; }
+        .admin-btn.primary:hover { background: #0d9488; }
+        .admin-btn.danger { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+        .admin-btn.danger:hover { background: #fecaca; }
+        .admin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 28px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+
+        .card.hidden-card { display: none; }
+
+        .card:hover {
+            transform: translateY(-6px) scale(1.01);
+            border-color: #f97316;
+            box-shadow: 0 15px 40px rgba(249, 115, 22, 0.15);
+        }
+
+        .card .remove-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(4px);
+            border: none;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #b91c1c;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid rgba(185, 28, 28, 0.15);
+            opacity: 0.7;
+        }
+
+        .card .remove-btn:hover {
+            opacity: 1;
+            background: #fee2e2;
+            transform: scale(1.05);
+        }
+
+        .top {
+            padding: 28px 20px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.12), rgba(249, 115, 22, 0.10));
+        }
+
+        .top img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #14b8a6;
+            box-shadow: 0 0 15px rgba(20, 184, 166, 0.25);
+            background: white;
+        }
+
+        .top h2 {
+            color: #0f172a;
+            margin-top: 14px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .top p {
+            color: #f97316;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin-top: 4px;
+        }
+
+        .info { padding: 18px 22px 22px; }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        .row:last-of-type { border-bottom: none; }
+
+        .label { color: #14b8a6; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.3px; }
+        .value { color: #0f172a; font-weight: 500; }
+
+        .address {
+            margin-top: 16px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        .address h4 { color: #f97316; margin-bottom: 6px; font-size: 0.9rem; letter-spacing: 0.5px; }
+        .address p { color: #334155; line-height: 1.5; font-weight: 450; }
+
+        .no-result {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(6px);
+            border-radius: 48px;
+            border: 1px dashed rgba(20, 184, 166, 0.3);
+        }
+
+        .no-result.hidden { display: none; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.25s ease;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal {
+            background: white;
+            border-radius: 40px;
+            padding: 40px 35px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.15);
+            transform: scale(0.94);
+            transition: 0.25s ease;
+        }
+
+        .modal-overlay.active .modal { transform: scale(1); }
+
+        .modal h3 { font-size: 1.8rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+        .modal p { color: #475569; margin-bottom: 24px; }
+
+        .modal label {
+            font-weight: 600;
+            color: #0f172a;
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 30px;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            transition: 0.2s;
+        }
+
+        .modal input:focus, .modal textarea:focus {
+            outline: none;
+            border-color: #14b8a6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions .admin-btn { padding: 12px 28px; }
+
+        /* loading */
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #14b8a6;
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2rem; }
+            .admin-bar { flex-direction: column; align-items: stretch; }
+            .admin-actions { margin-left: 0; justify-content: center; }
+            .header-section { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section">
+        <h1 class="title">Student <span>Directory</span></h1>
+        <div class="search-wrapper">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="searchInput" placeholder="নাম, আইডি বা বিভাগ দিয়ে খুঁজুন..." autocomplete="off">
+        </div>
+    </div>
+
+    <div class="admin-bar">
+        <div class="badge">⚙️ অ্যাডমিন <span id="studentCount">০</span></div>
+        <div class="admin-actions">
+            <button class="admin-btn primary" id="addStudentBtn">➕ নতুন যোগ করুন</button>
+            <button class="admin-btn" id="resetSearchBtn">⟲ রিসেট</button>
+            <button class="admin-btn danger" id="removeAllBtn">✖ সব ডিলিট করুন</button>
+        </div>
+    </div>
+
+    <div class="cards" id="cardsContainer">
+        <div class="loading-spinner">⏳ ডেটা লোড হচ্ছে...</div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3 id="modalTitle">➕ নতুন শিক্ষার্থী</h3>
+        <p id="modalSub">নিচের তথ্য পূরণ করুন।</p>
+        <form id="studentForm">
+            <label>পূর্ণ নাম *</label>
+            <input type="text" id="formName" placeholder="যেমন: তৌসিফ" required>
+
+            <label>রোল / আইডি *</label>
+            <input type="text" id="formId" placeholder="যেমন: ০১" required>
+
+            <label>বিভাগ</label>
+            <input type="text" id="formDept" placeholder="যেমন: ফাইন্যান্স" value="Finance">
+
+            <label>ফোন</label>
+            <input type="text" id="formPhone" placeholder="যেমন: ০১৮২৩৮৮২৫৬০">
+
+            <label>ঠিকানা</label>
+            <input type="text" id="formAddress" placeholder="যেমন: শাহজাহানপুর, ঢাকা">
+
+            <label>ছবির URL (ঐচ্ছিক)</label>
+            <input type="text" id="formImg" placeholder="https://... অথবা খালি রাখুন">
+
+            <div class="modal-actions">
+                <button type="button" class="admin-btn" id="modalCancelBtn">বাতিল</button>
+                <button type="submit" class="admin-btn primary" id="modalSaveBtn">💾 সংরক্ষণ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  🔥 FIREBASE CONFIGURATION (আপনার নিজের config দিন)
+    // ============================================================
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // Firebase initialize
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const studentsCollection = db.collection('students');
+
+    // ============================================================
+    //  অ্যাপ্লিকেশন স্টেট
+    // ============================================================
+    let students = [];
+    let editingId = null;        // Firestore doc id
+
+    const container = document.getElementById('cardsContainer');
+    const searchInput = document.getElementById('searchInput');
+    const noResultMsg = document.getElementById('noResultMsg');
+    const studentCountSpan = document.getElementById('studentCount');
+
+    // Modal elements
+    const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSub = document.getElementById('modalSub');
+    const form = document.getElementById('studentForm');
+    const formName = document.getElementById('formName');
+    const formId = document.getElementById('formId');
+    const formDept = document.getElementById('formDept');
+    const formPhone = document.getElementById('formPhone');
+    const formAddress = document.getElementById('formAddress');
+    const formImg = document.getElementById('formImg');
+    const modalCancel = document.getElementById('modalCancelBtn');
+    const modalSave = document.getElementById('modalSaveBtn');
+
+    // ============================================================
+    //  ফায়ারবেস থেকে ডেটা আনা
+    // ============================================================
+    async function loadStudents() {
+        try {
+            container.innerHTML = `<div class="loading-spinner">⏳ ডেটা লোড হচ্ছে...</div>`;
+            const snapshot = await studentsCollection.orderBy('id').get();
+            students = [];
+            snapshot.forEach(doc => {
+                students.push({ ...doc.data(), firestoreId: doc.id });
+            });
+            render();
+        } catch (error) {
+            console.error('Error loading students:', error);
+            container.innerHTML = `<div class="no-result">⚠️ ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
+        }
+    }
+
+    // ============================================================
+    //  রেন্ডার ফাংশন
+    // ============================================================
+    function render() {
+        container.innerHTML = '';
+        const query = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        students.forEach((student, index) => {
+            const fullText = (student.name + ' ' + student.id + ' ' + student.dept + ' ' + student.phone + ' ' + student.address).toLowerCase();
+            const match = query === '' || fullText.includes(query);
+
+            if (match) visibleCount++;
+
+            const card = document.createElement('div');
+            card.className = 'card' + (match ? '' : ' hidden-card');
+            card.dataset.index = index;
+
+            const imgSrc = student.img && student.img.trim() !== '' ? student.img :
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=14b8a6&color=fff&size=120`;
+
+            card.innerHTML = `
+                <button class="remove-btn" data-id="${student.firestoreId}">✖ ডিলিট</button>
+                <div class="top">
+                    <img src="${imgSrc}" alt="${student.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=14b8a6&color=fff&size=120'">
+                    <h2>${student.name}</h2>
+                    <p>শিক্ষার্থী</p>
+                </div>
+                <div class="info">
+                    <div class="row"><span class="label">বছর</span><span class="value">১ম বর্ষ</span></div>
+                    <div class="row"><span class="label">বিভাগ</span><span class="value">${student.dept || 'ফাইন্যান্স'}</span></div>
+                    <div class="row"><span class="label">রোল</span><span class="value">${student.id}</span></div>
+                    <div class="row"><span class="label">ফোন</span><span class="value">${student.phone || '—'}</span></div>
+                    <div class="address">
+                        <h4>ঠিকানা</h4>
+                        <p>${student.address || '—'}</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+
+            // ডিলিট বাটন — কনফার্মেশন সহ
+            const removeBtn = card.querySelector('.remove-btn');
+            removeBtn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const docId = this.dataset.id;
+                // কনফার্মেশন ডায়ালগ
+                if (confirm(`⚠️ "${student.name}"-কে ডিলিট করতে চান? এই কাজটি বাতিল করা যাবে না।`)) {
+                    await deleteStudent(docId);
+                }
+            });
+
+            // ডাবল ক্লিকে এডিট
+            card.addEventListener('dblclick', function() {
+                openEditModal(student.firestoreId);
+            });
+        });
+
+        // নো রেজাল্ট মেসেজ
+        const noResultEl = document.querySelector('.no-result');
+        if (visibleCount === 0 && query !== '') {
+            if (!noResultEl) {
+                const div = document.createElement('div');
+                div.className = 'no-result';
+                div.innerHTML = `<span style="display:block; font-size:2.2rem; margin-bottom:10px;">🔍</span>কোনো শিক্ষার্থী খুঁজে পাওয়া যায়নি।`;
+                container.appendChild(div);
+            }
+        } else {
+            const existing = container.querySelector('.no-result');
+            if (existing) existing.remove();
+        }
+
+        studentCountSpan.textContent = students.length;
+    }
+
+    // ============================================================
+    //  ডিলিট (কনফার্মেশন সহ)
+    // ============================================================
+    async function deleteStudent(docId) {
+        try {
+            await studentsCollection.doc(docId).delete();
+            // লোকাল অ্যারে থেকে রিমুভ
+            students = students.filter(s => s.firestoreId !== docId);
+            render();
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('ডিলিট করতে সমস্যা হয়েছে।');
+        }
+    }
+
+    // ============================================================
+    //  অ্যাড / এডিট
+    // ============================================================
+    async function addStudentToFirebase(data) {
+        try {
+            const docRef = await studentsCollection.add(data);
+            const newStudent = { ...data, firestoreId: docRef.id };
+            students.push(newStudent);
+            render();
+            return true;
+        } catch (error) {
+            console.error('Add error:', error);
+            alert('যোগ করতে সমস্যা হয়েছে।');
+            return false;
+        }
+    }
+
+    async function updateStudentInFirebase(docId, data) {
+        try {
+            await studentsCollection.doc(docId).update(data);
+            const index = students.findIndex(s => s.firestoreId === docId);
+            if (index !== -1) {
+                students[index] = { ...data, firestoreId: docId };
+                render();
+            }
+            return true;
+        } catch (error) {
+            console.error('Update error:', error);
+            alert('আপডেট করতে সমস্যা হয়েছে।');
+            return false;
+        }
+    }
+
+    // ============================================================
+    //  মডাল কন্ট্রোল
+    // ============================================================
+    function openModal(mode, docId = null) {
+        overlay.classList.add('active');
+        if (mode === 'add') {
+            modalTitle.textContent = '➕ নতুন শিক্ষার্থী যোগ করুন';
+            modalSub.textContent = 'নিচের তথ্য পূরণ করুন।';
+            form.reset();
+            formName.value = '';
+            formId.value = '';
+            formDept.value = 'Finance';
+            formPhone.value = '';
+            formAddress.value = '';
+            formImg.value = '';
+            editingId = null;
+            form.dataset.mode = 'add';
+            modalSave.textContent = '💾 সংরক্ষণ';
+        } else if (mode === 'edit' && docId) {
+            const student = students.find(s => s.firestoreId === docId);
+            if (!student) return;
+            modalTitle.textContent = '✏️ শিক্ষার্থী সম্পাদনা';
+            modalSub.textContent = 'তথ্য আপডেট করুন।';
+            formName.value = student.name || '';
+            formId.value = student.id || '';
+            formDept.value = student.dept || 'Finance';
+            formPhone.value = student.phone || '';
+            formAddress.value = student.address || '';
+            formImg.value = student.img || '';
+            editingId = docId;
+            form.dataset.mode = 'edit';
+            modalSave.textContent = '💾 আপডেট';
+        }
+    }
+
+    function closeModal() {
+        overlay.classList.remove('active');
+        editingId = null;
+        form.dataset.mode = '';
+    }
+
+    // ============================================================
+    //  ফর্ম সাবমিট
+    // ============================================================
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const name = formName.value.trim();
+        const id = formId.value.trim();
+        const dept = formDept.value.trim() || 'Finance';
+        const phone = formPhone.value.trim();
+        const address = formAddress.value.trim();
+        const img = formImg.value.trim();
+
+        if (!name || !id) {
+            alert('নাম এবং রোল/আইডি অবশ্যই দিতে হবে।');
+            return;
+        }
+
+        // ডুপ্লিকেট আইডি চেক (শুধু অ্যাড মোডে)
+        const mode = form.dataset.mode;
+        if (mode === 'add') {
+            if (students.some(s => s.id === id)) {
+                alert('এই রোল/আইডি ইতিমধ্যে বিদ্যমান।');
+                return;
+            }
+        }
+
+        const data = { name, id, dept, phone, address, img };
+
+        let success = false;
+        if (mode === 'add') {
+            success = await addStudentToFirebase(data);
+        } else if (mode === 'edit' && editingId) {
+            // ডুপ্লিকেট চেক (নিজের আইডি বাদে)
+            if (students.some(s => s.id === id && s.firestoreId !== editingId)) {
+                alert('এই রোল/আইডি অন্য একজন শিক্ষার্থীর আছে।');
+                return;
+            }
+            success = await updateStudentInFirebase(editingId, data);
+        }
+
+        if (success) closeModal();
+    });
+
+    // ============================================================
+    //  ইভেন্ট লিসেনার
+    // ============================================================
+    document.getElementById('addStudentBtn').addEventListener('click', () => openModal('add'));
+    modalCancel.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeModal();
+    });
+
+    document.getElementById('resetSearchBtn').addEventListener('click', function() {
+        searchInput.value = '';
+        render();
+    });
+
+    // সব ডিলিট (কনফার্মেশন সহ)
+    document.getElementById('removeAllBtn').addEventListener('click', async function() {
+        if (students.length === 0) return;
+        if (confirm('⚠️ আপনি কি সব শিক্ষার্থী ডিলিট করতে চান? এই কাজটি বাতিল করা যাবে না!')) {
+            try {
+                const batch = db.batch();
+                students.forEach(s => {
+                    const ref = studentsCollection.doc(s.firestoreId);
+                    batch.delete(ref);
+                });
+                await batch.commit();
+                students = [];
+                render();
+            } catch (error) {
+                console.error('Remove all error:', error);
+                alert('সব ডিলিট করতে সমস্যা হয়েছে।');
+            }
+        }
+    });
+
+    // এডিট মোড ওপেন
+    function openEditModal(docId) {
+        openModal('edit', docId);
+    }
+
+    // সার্চ ডিবাউন্স
+    let debounceTimer;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { render(); }, 150);
+    });
+
+    // ============================================================
+    //  শুরু করুন
+    // ============================================================
+    loadStudents();
+</script>
+
+</body>
+</html>
