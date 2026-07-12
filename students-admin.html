@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Admin Panel</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ============================================================
+               GLOBAL RESET & BASE
+               ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 1.5rem;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(20, 184, 166, 0.15), transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(249, 115, 22, 0.12), transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.06), transparent 50%),
+                linear-gradient(145deg, #f8fafc, #eef2f6);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* background floating blobs */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(70px);
+            z-index: 0;
+            pointer-events: none;
+        }
+        body::before {
+            width: 400px;
+            height: 400px;
+            background: rgba(20, 184, 166, 0.12);
+            top: -120px;
+            right: -80px;
+            animation: floatBlob 14s ease-in-out infinite alternate;
+        }
+        body::after {
+            width: 350px;
+            height: 350px;
+            background: rgba(249, 115, 22, 0.10);
+            bottom: -100px;
+            left: -60px;
+            animation: floatBlob2 16s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatBlob {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(-60px, 50px) scale(1.2);
+            }
+        }
+        @keyframes floatBlob2 {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(60px, -40px) scale(1.3);
+            }
+        }
+
+        /* ============================================================
+               APP CONTAINER
+               ============================================================ */
+        .admin-app {
+            max-width: 1400px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================================
+               HEADER
+               ============================================================ */
+        .app-header {
+            background: rgba(255, 255, 255, 0.60);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 32px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(20, 184, 166, 0.15);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .app-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .app-header .logo i {
+            font-size: 2rem;
+            color: #14b8a6;
+            background: rgba(20, 184, 166, 0.12);
+            padding: 10px;
+            border-radius: 16px;
+        }
+        .app-header .logo h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .app-header .logo span {
+            color: #f97316;
+        }
+
+        .app-header .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .header-actions .time-badge {
+            font-size: 0.8rem;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            border: 1px solid rgba(20, 184, 166, 0.10);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(20, 184, 166, 0.25);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(20, 184, 166, 0.35);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: rgba(249, 115, 22, 0.10);
+            color: #f97316;
+            border: 1px solid rgba(249, 115, 22, 0.20);
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary:hover {
+            background: rgba(249, 115, 22, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.6rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(34, 197, 94, 0.35);
+        }
+
+        /* ============================================================
+               STATS CARDS
+               ============================================================ */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 1.4rem 1.6rem;
+            border: 1px solid rgba(20, 184, 166, 0.10);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(20, 184, 166, 0.20);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(20, 184, 166, 0.08);
+            color: #14b8a6;
+            flex-shrink: 0;
+        }
+        .stat-card .stat-icon.orange {
+            background: rgba(249, 115, 22, 0.08);
+            color: #f97316;
+        }
+        .stat-card .stat-icon.purple {
+            background: rgba(99, 102, 241, 0.08);
+            color: #6366f1;
+        }
+
+        .stat-card .stat-info h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .stat-card .stat-info p {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        /* ============================================================
+               SEARCH + TOOLBAR
+               ============================================================ */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.40);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 0.8rem 1.6rem;
+            border-radius: 40px;
+            border: 1px solid rgba(20, 184, 166, 0.08);
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 40px;
+            padding: 0.3rem 0.3rem 0.3rem 1.2rem;
+            border: 1px solid rgba(20, 184, 166, 0.12);
+            flex: 1 1 260px;
+            max-width: 420px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.08);
+        }
+        .search-box i {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .search-box input {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.95rem;
+            width: 100%;
+            color: #0f172a;
+        }
+        .search-box input::placeholder {
+            color: #94a3b8;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+               FORM — Glassmorphism
+               ============================================================ */
+        .form-container {
+            background: rgba(255, 255, 255, 0.60);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 28px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(20, 184, 166, 0.10);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+            display: none;
+            animation: slideDown 0.35s ease;
+        }
+        .form-container.open {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-16px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-container .form-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-container .form-title i {
+            color: #14b8a6;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .form-group label i {
+            color: #14b8a6;
+            font-size: 0.8rem;
+            width: 16px;
+        }
+        .form-group input,
+        .form-group select {
+            padding: 0.6rem 0.8rem;
+            border-radius: 14px;
+            border: 1.5px solid rgba(20, 184, 166, 0.12);
+            background: rgba(255, 255, 255, 0.70);
+            font-size: 0.9rem;
+            color: #0f172a;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            outline: none;
+            width: 100%;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.08);
+        }
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-group .error-text {
+            font-size: 0.7rem;
+            color: #ef4444;
+            display: none;
+            margin-top: 2px;
+        }
+        .form-group.invalid input,
+        .form-group.invalid select {
+            border-color: #ef4444;
+        }
+        .form-group.invalid .error-text {
+            display: block;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1.4rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        /* ============================================================
+               TABLE
+               ============================================================ */
+        .table-wrapper {
+            background: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 28px;
+            border: 1px solid rgba(20, 184, 166, 0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+            padding: 0.2rem;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            padding: 0.2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 760px;
+        }
+
+        thead {
+            background: rgba(20, 184, 166, 0.06);
+            border-bottom: 2px solid rgba(20, 184, 166, 0.10);
+        }
+        thead th {
+            padding: 0.9rem 0.8rem;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            transition: background 0.15s;
+        }
+        tbody tr:hover {
+            background: rgba(20, 184, 166, 0.03);
+        }
+        tbody td {
+            padding: 0.7rem 0.8rem;
+            vertical-align: middle;
+            color: #1e293b;
+        }
+
+        .table-photo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e3f2f1;
+            border: 2px solid rgba(20, 184, 166, 0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #14b8a6;
+        }
+        .table-photo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .table-photo .fallback {
+            font-size: 1.2rem;
+            color: #14b8a6;
+            opacity: 0.5;
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .status-badge.active {
+            background: rgba(34, 197, 94, 0.12);
+            color: #16a34a;
+        }
+        .status-badge.inactive {
+            background: rgba(239, 68, 68, 0.10);
+            color: #dc2626;
+        }
+        .status-badge.pending {
+            background: rgba(249, 115, 22, 0.12);
+            color: #f97316;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .action-btns button {
+            border: none;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .action-btns .edit-btn {
+            background: rgba(20, 184, 166, 0.10);
+            color: #14b8a6;
+        }
+        .action-btns .edit-btn:hover {
+            background: rgba(20, 184, 166, 0.20);
+            transform: scale(1.04);
+        }
+        .action-btns .delete-btn {
+            background: rgba(239, 68, 68, 0.08);
+            color: #ef4444;
+        }
+        .action-btns .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.18);
+            transform: scale(1.04);
+        }
+
+        /* ============================================================
+               MODAL
+               ============================================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.40);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1.5rem;
+            animation: fadeIn 0.25s ease;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .modal-box {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 2rem 2.2rem;
+            max-width: 440px;
+            width: 100%;
+            border: 1px solid rgba(20, 184, 166, 0.10);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+            animation: scaleIn 0.3s ease;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0.92);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-box .modal-icon {
+            font-size: 3rem;
+            color: #ef4444;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .modal-box h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+        }
+        .modal-box p {
+            color: #64748b;
+            text-align: center;
+            margin: 0.5rem 0 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .modal-box .modal-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ============================================================
+               TOAST
+               ============================================================ */
+        .toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-width: 380px;
+            width: 100%;
+        }
+
+        .toast {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 0.9rem 1.4rem;
+            border-radius: 18px;
+            border: 1px solid rgba(20, 184, 166, 0.10);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.4s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #0f172a;
+            transition: opacity 0.3s;
+        }
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+        .toast.success i {
+            color: #22c55e;
+        }
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+        .toast.error i {
+            color: #ef4444;
+        }
+        .toast.info {
+            border-left: 4px solid #14b8a6;
+        }
+        .toast.info i {
+            color: #14b8a6;
+        }
+
+        .toast .toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0 4px;
+        }
+        .toast .toast-close:hover {
+            color: #475569;
+        }
+
+        @keyframes slideInRight {
+            0% {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ============================================================
+               LOADING / EMPTY / ERROR STATES
+               ============================================================ */
+        .state-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            gap: 0.6rem;
+            color: #64748b;
+        }
+        .state-message i {
+            font-size: 3rem;
+            opacity: 0.4;
+            color: #14b8a6;
+        }
+        .state-message h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .state-message p {
+            font-size: 0.9rem;
+            max-width: 320px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(20, 184, 166, 0.15);
+            border-top-color: #14b8a6;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ============================================================
+               RESPONSIVE
+               ============================================================ */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .app-header {
+                padding: 1rem 1.2rem;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+            .app-header .logo h1 {
+                font-size: 1.3rem;
+            }
+            .app-header .header-actions {
+                justify-content: space-between;
+            }
+            .stats-row {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 0.8rem;
+            }
+            .stat-card {
+                padding: 1rem 1.2rem;
+            }
+            .stat-card .stat-info h3 {
+                font-size: 1.3rem;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 1rem 1.2rem;
+                border-radius: 24px;
+            }
+            .search-box {
+                max-width: 100%;
+                flex: 1 1 auto;
+            }
+            .toolbar-actions {
+                justify-content: stretch;
+            }
+            .toolbar-actions .btn-primary {
+                flex: 1;
+                justify-content: center;
+            }
+            .form-container {
+                padding: 1.2rem;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .modal-box {
+                padding: 1.5rem;
+                margin: 0.5rem;
+            }
+            .toast-container {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+                max-width: none;
+                width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-header .logo i {
+                font-size: 1.4rem;
+                padding: 8px;
+            }
+            .app-header .logo h1 {
+                font-size: 1.1rem;
+            }
+            .stat-card .stat-info h3 {
+                font-size: 1.1rem;
+            }
+            .stat-card .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.4rem;
+            }
+            .action-btns button {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.5rem;
+            }
+            table {
+                font-size: 0.75rem;
+                min-width: 600px;
+            }
+            thead th,
+            tbody td {
+                padding: 0.5rem 0.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-app">
+
+        <!-- ============================================================
+        HEADER
+        ============================================================ -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>Student <span>Admin</span></h1>
+            </div>
+            <div class="header-actions">
+                <span class="time-badge">
+                    <i class="fas fa-clock"></i>
+                    <span id="liveTime">--:--:--</span>
+                </span>
+                <button class="btn-primary" id="toggleFormBtn">
+                    <i class="fas fa-plus"></i> Add Student
+                </button>
+            </div>
+        </header>
+
+        <!-- ============================================================
+        STATS
+        ============================================================ -->
+        <section class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <h3 id="totalCount">0</h3>
+                    <p>Total Students</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-circle"></i></div>
+                <div class="stat-info">
+                    <h3 id="activeCount">0</h3>
+                    <p>Active</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3 id="lastUpdated">—</h3>
+                    <p>Last Updated</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        TOOLBAR
+        ============================================================ -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, roll, dept, phone, address…" />
+            </div>
+            <div class="toolbar-actions">
+                <button class="btn-secondary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================================
+        FORM
+        ============================================================ -->
+        <div class="form-container" id="formContainer">
+            <div class="form-title">
+                <i class="fas fa-user-plus"></i>
+                <span id="formTitle">Add New Student</span>
+            </div>
+
+            <form id="studentForm" novalidate>
+                <div class="form-grid">
+                    <!-- Name -->
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" id="fName" placeholder="e.g. Md. Karim" required />
+                        <span class="error-text">Name is required</span>
+                    </div>
+                    <!-- Roll -->
+                    <div class="form-group">
+                        <label><i class="fas fa-id-badge"></i> Roll</label>
+                        <input type="text" id="fRoll" placeholder="e.g. 2024001" required />
+                        <span class="error-text">Roll is required and must be unique</span>
+                    </div>
+                    <!-- Year -->
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Year</label>
+                        <select id="fYear">
+                            <option value="">Select Year</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                        <span class="error-text">Please select a year</span>
+                    </div>
+                    <!-- Department -->
+                    <div class="form-group">
+                        <label><i class="fas fa-building"></i> Department</label>
+                        <input type="text" id="fDept" placeholder="e.g. Finance" />
+                        <span class="error-text">Department is required</span>
+                    </div>
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone</label>
+                        <input type="text" id="fPhone" placeholder="e.g. 017xxxxxxxx" />
+                        <span class="error-text">Phone is required</span>
+                    </div>
+                    <!-- Address -->
+                    <div class="form-group">
+                        <label><i class="fas fa-map-pin"></i> Address</label>
+                        <input type="text" id="fAddress" placeholder="e.g. Dhaka" />
+                        <span class="error-text">Address is required</span>
+                    </div>
+                    <!-- Image URL -->
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> Image URL</label>
+                        <input type="url" id="fImage" placeholder="https://example.com/photo.jpg" />
+                    </div>
+                    <!-- Status -->
+                    <div class="form-group">
+                        <label><i class="fas fa-toggle-on"></i> Status</label>
+                        <select id="fStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <i class="fas fa-save"></i> <span id="submitBtnText">Add Student</span>
+                    </button>
+                    <button type="button" class="btn-secondary" id="resetFormBtn">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                    <button type="button" class="btn-secondary" id="cancelFormBtn" style="display:none;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ============================================================
+        TABLE
+        ============================================================ -->
+        <div class="table-wrapper">
+            <div class="table-scroll" id="tableWrapper">
+                <!-- rendered by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================================
+    DELETE CONFIRMATION MODAL
+    ============================================================ -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="fas fa-exclamation-circle"></i></div>
+            <h3>Delete Student</h3>
+            <p>Are you sure you want to delete <strong id="deleteName">—</strong>? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="modalCancelBtn">Cancel</button>
+                <button class="btn-danger" id="modalConfirmBtn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    TOAST CONTAINER
+    ============================================================ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ============================================================
+    FIREBASE + APP — ES Module
+    ============================================================ -->
+    <script type="module">
+        // ================================================================
+        //  1)  FIREBASE CONFIG  — replace with your own
+        // ================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0fKdqe8ZQUK-Ys2L6Gm5x53i2ZdyOjrE",
+            authDomain: "hbuc-student.firebaseapp.com",
+            projectId: "hbuc-student",
+            storageBucket: "hbuc-student.firebasestorage.app",
+            messagingSenderId: "370097429274",
+            appId: "1:370097429274:web:9f6e78032af050eddbaaa3",
+            databaseURL: "https://hbuc-student-default-rtdb.firebaseio.com"
+        };
+
+        // ================================================================
+        //  2)  IMPORTS  — Firebase v11+
+        // ================================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            onSnapshot,
+            query,
+            orderBy,
+            getDocs,
+            where,
+            serverTimestamp,
+            writeBatch,
+        } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+        import {
+            getDatabase
+        } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+        // ================================================================
+        //  3)  INITIALIZE
+        // ================================================================
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
+
+        console.log("✅ Firebase Connected Successfully");
+        console.log("✅ Firestore Ready");
+        console.log("✅ Realtime Database Ready");
+
+        const studentsCol = collection(db, "students");
+        const studentsQuery = query(studentsCol, orderBy("createdAt", "desc"));
+
+        // ================================================================
+        //  4)  DOM REFS
+        // ================================================================
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
+        const grid = document.getElementById("tableWrapper");
+        const searchInput = document.getElementById("searchInput");
+        const toggleFormBtn = document.getElementById("toggleFormBtn");
+        const formContainer = document.getElementById("formContainer");
+        const formTitle = document.getElementById("formTitle");
+        const studentForm = document.getElementById("studentForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const submitBtnText = document.getElementById("submitBtnText");
+        const resetFormBtn = document.getElementById("resetFormBtn");
+        const cancelFormBtn = document.getElementById("cancelFormBtn");
+        const refreshBtn = document.getElementById("refreshBtn");
+
+        const fName = document.getElementById("fName");
+        const fRoll = document.getElementById("fRoll");
+        const fYear = document.getElementById("fYear");
+        const fDept = document.getElementById("fDept");
+        const fPhone = document.getElementById("fPhone");
+        const fAddress = document.getElementById("fAddress");
+        const fImage = document.getElementById("fImage");
+        const fStatus = document.getElementById("fStatus");
+
+        const totalCount = document.getElementById("totalCount");
+        const activeCount = document.getElementById("activeCount");
+        const lastUpdated = document.getElementById("lastUpdated");
+        const liveTime = document.getElementById("liveTime");
+
+        const deleteModal = document.getElementById("deleteModal");
+        const deleteName = document.getElementById("deleteName");
+        const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+        const modalCancelBtn = document.getElementById("modalCancelBtn");
+
+        const toastContainer = document.getElementById("toastContainer");
+
+        // ================================================================
+        //  5)  STATE
+        // ================================================================
+        let allStudents = [];
+        let filteredStudents = [];
+        let unsubscribe = null;
+        let isEditing = false;
+        let editId = null;
+        let deleteTargetId = null;
+        let isFirstLoad = true;
+
+        // ================================================================
+        //  6)  UTILITY — XSS escape
+        // ================================================================
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, (m) => map[m]);
+        }
+
+        // ================================================================
+        //  7)  TOAST
+        // ================================================================
+        function showToast(message, type = "success") {
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            const icons = {
+                success: "fa-check-circle",
+                error: "fa-exclamation-circle",
+                info: "fa-info-circle"
+            };
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || icons.info}"></i>
+                <span>${escapeHtml(message)}</span>
+                <button class="toast-close"><i class="fas fa-times"></i></button>
+            `;
+            toastContainer.appendChild(toast);
+            const closeBtn = toast.querySelector(".toast-close");
+            closeBtn.addEventListener("click", () => toast.remove());
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, 4000);
+        }
+
+        // ================================================================
+        //  8)  LIVE CLOCK
+        // ================================================================
+        function updateClock() {
+            const now = new Date();
+            liveTime.textContent = now.toLocaleTimeString("en-BD", { hour12: false });
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // ================================================================
+        //  9)  RENDER TABLE
+        // ================================================================
+        function renderTable(list) {
+            if (!list) list = filteredStudents;
+
+            if (!list || list.length === 0) {
+                grid.innerHTML = `
+                    <div class="state-message">
+                        <i class="fas fa-user-graduate"></i>
+                        <h4>No Students Found</h4>
+                        <p>Add your first student using the <strong>Add Student</strong> button above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Name</th>
+                            <th>Roll</th>
+                            <th>Department</th>
+                            <th>Year</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th style="text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            list.forEach((s) => {
+                const hasImage = s.image && s.image.trim() !== "";
+                const statusClass = s.status || "active";
+                const statusLabel = statusClass.charAt(0).toUpperCase() + statusClass.slice(1);
+
+                html += `
+                    <tr data-id="${escapeHtml(s.id)}">
+                        <td>
+                            <div class="table-photo">
+                                ${hasImage ? `<img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.name)}" onerror="this.style.display='none'" />` : ''}
+                                ${!hasImage ? `<span class="fallback"><i class="fas fa-user"></i></span>` : ''}
+                            </div>
+                        </td>
+                        <td><strong>${escapeHtml(s.name || '—')}</strong></td>
+                        <td>${escapeHtml(s.roll || '—')}</td>
+                        <td>${escapeHtml(s.department || '—')}</td>
+                        <td>${escapeHtml(s.year || '—')}</td>
+                        <td>${escapeHtml(s.phone || '—')}</td>
+                        <td><span class="status-badge ${statusClass}"><i class="fas fa-circle" style="font-size:0.4rem;"></i> ${statusLabel}</span></td>
+                        <td style="text-align:center;">
+                            <div class="action-btns" style="justify-content:center;">
+                                <button class="edit-btn" data-id="${escapeHtml(s.id)}" data-name="${escapeHtml(s.name)}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="delete-btn" data-id="${escapeHtml(s.id)}" data-name="${escapeHtml(s.name)}">
+                                    <i class="fas fa-trash"></i> Del
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            grid.innerHTML = html;
+
+            // Attach event listeners to edit/delete buttons
+            grid.querySelectorAll(".edit-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = btn.dataset.id;
+                    const student = allStudents.find((s) => s.id === id);
+                    if (student) openEditForm(student);
+                });
+            });
+
+            grid.querySelectorAll(".delete-btn").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = btn.dataset.id;
+                    const name = btn.dataset.name || "this student";
+                    openDeleteModal(id, name);
+                });
+            });
+        }
+
+        // ================================================================
+        //  10)  STATS UPDATE
+        // ================================================================
+        function updateStats(list) {
+            if (!list) list = allStudents;
+            const total = list.length;
+            const active = list.filter((s) => (s.status || "active") === "active").length;
+            totalCount.textContent = total;
+            activeCount.textContent = active;
+
+            if (list.length > 0) {
+                const dates = list
+                    .map((s) => s.updatedAt || s.createdAt)
+                    .filter(Boolean)
+                    .sort((a, b) => b - a);
+                if (dates.length > 0) {
+                    const d = new Date(dates[0].seconds * 1000);
+                    lastUpdated.textContent = d.toLocaleDateString("en-BD") + " " + d.toLocaleTimeString("en-BD", { hour12: false });
+                } else {
+                    lastUpdated.textContent = "—";
+                }
+            } else {
+                lastUpdated.textContent = "—";
+            }
+        }
+
+        // ================================================================
+        //  11)  SEARCH
+        // ================================================================
+        function applySearch(term) {
+            const q = term.trim().toLowerCase();
+            if (!q) {
+                filteredStudents = [...allStudents];
+            } else {
+                filteredStudents = allStudents.filter((s) => {
+                    const fields = [
+                        s.name, s.roll, s.department, s.year, s.phone, s.address
+                    ].map((v) => (v || "").toLowerCase());
+                    return fields.some((f) => f.includes(q));
+                });
+            }
+            renderTable(filteredStudents);
+            updateStats(filteredStudents);
+        }
+
+        // ================================================================
+        //  12)  FORM — Reset / Fill / Validation
+        // ================================================================
+        function resetForm() {
+            studentForm.reset();
+            fStatus.value = "active";
+            isEditing = false;
+            editId = null;
+            formTitle.textContent = "Add New Student";
+            submitBtnText.textContent = "Add Student";
+            cancelFormBtn.style.display = "none";
+            document.querySelectorAll(".form-group").forEach((g) => g.classList.remove("invalid"));
+            formContainer.classList.remove("open");
+            toggleFormBtn.innerHTML = '<i class="fas fa-plus"></i> Add Student';
+        }
+
+        function fillForm(student) {
+            fName.value = student.name || "";
+            fRoll.value = student.roll || "";
+            fYear.value = student.year || "";
+            fDept.value = student.department || "";
+            fPhone.value = student.phone || "";
+            fAddress.value = student.address || "";
+            fImage.value = student.image || "";
+            fStatus.value = student.status || "active";
+            isEditing = true;
+            editId = student.id;
+            formTitle.textContent = "Edit Student";
+            submitBtnText.textContent = "Update Student";
+            cancelFormBtn.style.display = "inline-flex";
+            formContainer.classList.add("open");
+            toggleFormBtn.innerHTML = '<i class="fas fa-times"></i> Close Form';
+        }
+
+        function openEditForm(student) {
+            fillForm(student);
+            // Scroll to form
+            formContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        // ================================================================
+        //  13)  CRUD — Add / Update / Delete
+        // ================================================================
+        async function addStudent(data) {
+            try {
+                const ref = await addDoc(studentsCol, {
+                    ...data,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                });
+                console.log("✅ Student Added:", ref.id);
+                showToast("Student added successfully!", "success");
+                resetForm();
+                return true;
+            } catch (err) {
+                console.error("❌ Add error:", err);
+                showToast("Failed to add student: " + err.message, "error");
+                return false;
+            }
+        }
+
+        async function updateStudent(id, data) {
+            try {
+                const ref = doc(db, "students", id);
+                await updateDoc(ref, {
+                    ...data,
+                    updatedAt: serverTimestamp(),
+                });
+                console.log("✅ Student Updated:", id);
+                showToast("Student updated successfully!", "success");
+                resetForm();
+                return true;
+            } catch (err) {
+                console.error("❌ Update error:", err);
+                showToast("Failed to update student: " + err.message, "error");
+                return false;
+            }
+        }
+
+        async function deleteStudent(id) {
+            try {
+                const ref = doc(db, "students", id);
+                await deleteDoc(ref);
+                console.log("✅ Student Deleted:", id);
+                showToast("Student deleted successfully!", "success");
+                return true;
+            } catch (err) {
+                console.error("❌ Delete error:", err);
+                showToast("Failed to delete student: " + err.message, "error");
+                return false;
+            }
+        }
+
+        // ================================================================
+        //  14)  CHECK DUPLICATE ROLL
+        // ================================================================
+        async function isRollDuplicate(roll, excludeId = null) {
+            if (!roll) return false;
+            try {
+                const q = query(studentsCol, where("roll", "==", roll));
+                const snap = await getDocs(q);
+                if (snap.empty) return false;
+                // If editing, exclude the current document
+                if (excludeId) {
+                    for (const docSnap of snap.docs) {
+                        if (docSnap.id !== excludeId) return true;
+                    }
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                console.warn("Roll duplicate check error:", err);
+                return false; // fallback: allow if check fails
+            }
+        }
+
+        // ================================================================
+        //  15)  FORM SUBMIT HANDLER
+        // ================================================================
+        studentForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            // Validate required fields
+            const name = fName.value.trim();
+            const roll = fRoll.value.trim();
+            const year = fYear.value;
+            const dept = fDept.value.trim();
+            const phone = fPhone.value.trim();
+            const address = fAddress.value.trim();
+
+            let valid = true;
+            document.querySelectorAll(".form-group").forEach((g) => g.classList.remove("invalid"));
+
+            if (!name) { fName.closest(".form-group").classList.add("invalid");
+                valid = false; }
+            if (!roll) { fRoll.closest(".form-group").classList.add("invalid");
+                valid = false; }
+            if (!year) { fYear.closest(".form-group").classList.add("invalid");
+                valid = false; }
+            if (!dept) { fDept.closest(".form-group").classList.add("invalid");
+                valid = false; }
+            if (!phone) { fPhone.closest(".form-group").classList.add("invalid");
+                valid = false; }
+            if (!address) { fAddress.closest(".form-group").classList.add("invalid");
+                valid = false; }
+
+            if (!valid) {
+                showToast("Please fill in all required fields.", "error");
+                return;
+            }
+
+            // Check duplicate roll
+            const duplicate = await isRollDuplicate(roll, isEditing ? editId : null);
+            if (duplicate) {
+                fRoll.closest(".form-group").classList.add("invalid");
+                showToast("This Roll number is already taken. Please use a unique roll.", "error");
+                return;
+            }
+
+            const data = {
+                name,
+                roll,
+                year,
+                department: dept,
+                phone,
+                address,
+                image: fImage.value.trim() || "",
+                status: fStatus.value || "active",
+            };
+
+            // Disable submit button to prevent double submission
+            submitBtn.disabled = true;
+            submitBtnText.textContent = isEditing ? "Updating..." : "Adding...";
+
+            let success = false;
+            if (isEditing && editId) {
+                success = await updateStudent(editId, data);
+            } else {
+                success = await addStudent(data);
+            }
+
+            submitBtn.disabled = false;
+            submitBtnText.textContent = isEditing ? "Update Student" : "Add Student";
+
+            if (success) {
+                // Reset form and close if not editing
+                if (!isEditing) resetForm();
+            }
+        });
+
+        // ================================================================
+        //  16)  FORM CONTROLS — Toggle / Reset / Cancel
+        // ================================================================
+        toggleFormBtn.addEventListener("click", () => {
+            const isOpen = formContainer.classList.contains("open");
+            if (isOpen) {
+                resetForm();
+            } else {
+                formContainer.classList.add("open");
+                toggleFormBtn.innerHTML = '<i class="fas fa-times"></i> Close Form';
+                // Reset any editing state
+                if (isEditing) {
+                    resetForm();
+                }
+                // Clear validation
+                document.querySelectorAll(".form-group").forEach((g) => g.classList.remove("invalid"));
+            }
+        });
+
+        resetFormBtn.addEventListener("click", () => {
+            if (isEditing) {
+                // If editing, confirm reset
+                if (confirm("Are you sure you want to reset the form? Changes will be lost.")) {
+                    resetForm();
+                }
+            } else {
+                resetForm();
+            }
+        });
+
+        cancelFormBtn.addEventListener("click", resetForm);
+
+        // ================================================================
+        //  17)  DELETE MODAL
+        // ================================================================
+        function openDeleteModal(id, name) {
+            deleteTargetId = id;
+            deleteName.textContent = name;
+            deleteModal.classList.add("open");
+        }
+
+        function closeDeleteModal() {
+            deleteModal.classList.remove("open");
+            deleteTargetId = null;
+        }
+
+        modalCancelBtn.addEventListener("click", closeDeleteModal);
+        deleteModal.addEventListener("click", (e) => {
+            if (e.target === deleteModal) closeDeleteModal();
+        });
+
+        modalConfirmBtn.addEventListener("click", async () => {
+            if (!deleteTargetId) return;
+            modalConfirmBtn.disabled = true;
+            modalConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            const success = await deleteStudent(deleteTargetId);
+            modalConfirmBtn.disabled = false;
+            modalConfirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+            if (success) {
+                closeDeleteModal();
+            }
+        });
+
+        // ================================================================
+        //  18)  REFRESH BUTTON
+        // ================================================================
+        refreshBtn.addEventListener("click", () => {
+            showToast("Refreshing data...", "info");
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+            startListening();
+        });
+
+        // ================================================================
+        //  19)  START LISTENING — onSnapshot
+        // ================================================================
+        function startListening() {
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+
+            // Show loading state
+            grid.innerHTML = `
+                <div class="state-message">
+                    <div class="spinner"></div>
+                    <h4>Loading students…</h4>
+                    <p>Please wait while we fetch the data.</p>
+                </div>
+            `;
+
+            try {
+                unsubscribe = onSnapshot(
+                    studentsQuery,
+                    (snapshot) => {
+                        const students = [];
+                        snapshot.forEach((doc) => {
+                            const data = doc.data();
+                            students.push({
+                                id: doc.id,
+                                name: data.name || "",
+                                roll: data.roll || "",
+                                year: data.year || "",
+                                department: data.department || "",
+                                phone: data.phone || "",
+                                address: data.address || "",
+                                image: data.image || "",
+                                status: data.status || "active",
+                                createdAt: data.createdAt || null,
+                                updatedAt: data.updatedAt || null,
+                            });
+                        });
+
+                        allStudents = students;
+                        const term = searchInput.value || "";
+                        applySearch(term);
+                        updateStats(filteredStudents);
+
+                        if (isFirstLoad) {
+                            console.log(`✅ Students Loaded Successfully (${allStudents.length} records)`);
+                            isFirstLoad = false;
+                        } else {
+                            console.log(`🔄 Students Updated (${allStudents.length} records)`);
+                        }
+                    },
+                    (error) => {
+                        console.error("❌ Firestore Error:", error);
+                        let msg = "Failed to load students. Please try again.";
+                        if (error.code === "permission-denied") {
+                            msg = "Permission denied. Check your Firestore security rules.";
+                        } else if (error.code === "unavailable") {
+                            msg = "Network error. Please check your connection.";
+                        }
+                        grid.innerHTML = `
+                            <div class="state-message">
+                                <i class="fas fa-exclamation-triangle" style="color:#ef4444;opacity:0.6;"></i>
+                                <h4>Error Loading Data</h4>
+                                <p>${msg}</p>
+                                <button class="btn-secondary" style="margin-top:0.5rem;" id="retryListenerBtn">
+                                    <i class="fas fa-redo"></i> Retry
+                                </button>
+                            </div>
+                        `;
+                        const retryBtn = document.getElementById("retryListenerBtn");
+                        if (retryBtn) {
+                            retryBtn.addEventListener("click", () => {
+                                startListening();
+                            });
+                        }
+                        showToast(msg, "error");
+                    }
+                );
+            } catch (err) {
+                console.error("❌ Listener setup error:", err);
+                showToast("Failed to set up real-time listener.", "error");
+            }
+        }
+
+        // ================================================================
+        //  20)  SEARCH INPUT
+        // ================================================================
+        searchInput.addEventListener("input", (e) => {
+            applySearch(e.target.value);
+        });
+
+        // ================================================================
+        //  21)  GO
+        // ================================================================
+        startListening();
+
+        // Expose for debugging
+        window.__adminDebug = {
+            db,
+            rtdb,
+            allStudents: () => [...allStudents],
+            refresh: startListening,
+            resetForm,
+        };
+
+        console.log("✅ Admin Panel ready — Firestore + Realtime Database connected.");
+        console.log("ℹ️  Realtime Database is initialized and reserved for future use.");
+    </script>
+
+</body>
+</html>

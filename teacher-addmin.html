@@ -1,923 +1,330 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Teachers Admin Panel · Firebase</title>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<title>Admin Panel - Manage Teachers</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', sans-serif;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
 }
 
-body {
-    background: #f0f2f5;
-    min-height: 100vh;
+body{
+background:#f5f7fb;
+padding:20px;
 }
 
-/* ===== HERO ===== */
-.hero {
-    background: linear-gradient(rgba(0,20,70,.88), rgba(0,20,70,.88)),
-                url("https://images.unsplash.com/photo-1524995997946-a1c2e315a42f");
-    background-size: cover;
-    background-position: center;
-    padding: 50px 20px 40px;
-    text-align: center;
-    color: white;
+.admin-container{
+max-width:1200px;
+margin:0 auto;
 }
 
-.hero h1 {
-    font-size: 50px;
-    font-family: Georgia, serif;
-}
-.hero span { color: #f7c948; }
-.hero .line {
-    width: 100px;
-    height: 3px;
-    background: #f7c948;
-    margin: 12px auto;
-}
-.hero p { font-size: 17px; opacity: .9; }
-
-/* ===== ADMIN PANEL ===== */
-.admin-panel {
-    max-width: 1400px;
-    margin: -20px auto 0;
-    padding: 0 30px;
-    position: relative;
-    z-index: 10;
+header{
+background:#001a5c;
+color:white;
+padding:20px;
+border-radius:10px;
+text-align:center;
+margin-bottom:30px;
 }
 
-.admin-bar {
-    background: white;
-    border-radius: 20px;
-    padding: 18px 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
+header h1{
+font-family:Georgia,serif;
 }
 
-.admin-bar .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
-    color: #26166f;
-    font-size: 1.1rem;
+.main-content{
+display:grid;
+grid-template-columns:1fr 2fr;
+gap:30px;
 }
 
-.admin-bar .brand i {
-    color: #f7c948;
-    font-size: 1.4rem;
+@media(max-width:900px){
+.main-content{
+grid-template-columns:1fr;
+}
 }
 
-.admin-bar .badge {
-    background: #26166f;
-    color: white;
-    padding: 5px 16px;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    font-weight: 600;
+/* Form Style */
+.form-box{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,.1);
+height:fit-content;
 }
 
-.admin-bar .badge span {
-    background: #f7c948;
-    color: #26166f;
-    padding: 1px 10px;
-    border-radius: 20px;
-    margin-left: 6px;
+.form-box h2{
+color:#001a5c;
+margin-bottom:20px;
+font-family:Georgia,serif;
+border-bottom:2px solid #f7c948;
+padding-bottom:10px;
 }
 
-.admin-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+.input-group{
+margin-bottom:15px;
 }
 
-.admin-btn {
-    padding: 10px 22px;
-    border: none;
-    border-radius: 30px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: 0.25s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-.admin-btn:hover { transform: scale(0.95); }
-
-.admin-btn.primary {
-    background: #f7c948;
-    color: #26166f;
-}
-.admin-btn.primary:hover { background: #e6b83a; }
-
-.admin-btn.danger {
-    background: #fee2e2;
-    color: #991b1b;
-}
-.admin-btn.danger:hover { background: #fecaca; }
-
-.admin-btn.outline {
-    background: transparent;
-    color: #26166f;
-    border: 2px solid #e2e8f0;
-}
-.admin-btn.outline:hover { background: #f1f5f9; }
-
-.admin-btn.success {
-    background: #dcfce7;
-    color: #166534;
-}
-.admin-btn.success:hover { background: #bbf7d0; }
-
-/* ===== SEARCH BAR ===== */
-.search-section {
-    margin-top: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
+.input-group label{
+display:block;
+margin-bottom:5px;
+color:#333;
+font-weight:600;
+font-size:14px;
 }
 
-.search-section input {
-    flex: 1;
-    min-width: 200px;
-    padding: 14px 24px;
-    border: 2px solid #e2e8f0;
-    border-radius: 40px;
-    font-size: 1rem;
-    transition: 0.3s;
-    background: white;
-}
-.search-section input:focus {
-    outline: none;
-    border-color: #f7c948;
-    box-shadow: 0 0 0 4px rgba(247, 201, 72, 0.15);
+.input-group input, .input-group select{
+width:100%;
+padding:10px;
+border:1px solid #ccc;
+border-radius:5px;
+outline:none;
+font-size:15px;
 }
 
-.search-section .filter-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+.input-group input:focus{
+border-color:#001a5c;
 }
 
-.filter-btn {
-    padding: 10px 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 30px;
-    background: white;
-    cursor: pointer;
-    font-weight: 500;
-    transition: 0.25s;
-    font-size: 0.85rem;
-}
-.filter-btn:hover { border-color: #26166f; }
-.filter-btn.active {
-    background: #26166f;
-    color: white;
-    border-color: #26166f;
+button{
+width:100%;
+padding:12px;
+background:#26166f;
+color:white;
+border:none;
+border-radius:5px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+transition:.3s;
 }
 
-/* ===== CARDS GRID ===== */
-.container {
-    max-width: 1400px;
-    margin: 30px auto 50px;
-    padding: 0 30px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
+button:hover{
+background:#f7c948;
+color:#26166f;
 }
 
-.card {
-    background: white;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-    transition: 0.35s;
-    position: relative;
-    border: 1px solid rgba(0,0,0,0.04);
-}
-.card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+/* Table Style */
+.data-box{
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,.1);
+overflow-x:auto;
 }
 
-.card .remove-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: rgba(255,255,255,0.92);
-    border: none;
-    border-radius: 30px;
-    padding: 5px 14px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #991b1b;
-    cursor: pointer;
-    transition: 0.2s;
-    border: 1px solid rgba(153, 27, 27, 0.15);
-    z-index: 5;
-    opacity: 0.6;
-}
-.card .remove-btn:hover {
-    opacity: 1;
-    background: #fee2e2;
+.data-box h2{
+color:#001a5c;
+margin-bottom:20px;
+font-family:Georgia,serif;
 }
 
-.card .edit-badge {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(38, 22, 111, 0.9);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.6rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    opacity: 0;
-    transition: 0.3s;
-    pointer-events: none;
-}
-.card:hover .edit-badge { opacity: 1; }
-
-.card img {
-    width: 100%;
-    height: 280px;
-    object-fit: cover;
+table{
+width:100%;
+border-collapse:collapse;
+text-align:left;
 }
 
-.info {
-    background: #26166f;
-    color: white;
-    padding: 22px 20px 25px;
-    text-align: center;
-    position: relative;
+th, td{
+padding:12px 15px;
+border-bottom:1px solid #ddd;
 }
 
-.cap {
-    position: absolute;
-    top: -28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 52px;
-    height: 52px;
-    background: #26166f;
-    border: 3px solid #f7c948;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    color: #f7c948;
+th{
+background:#001a5c;
+color:white;
 }
 
-.info h2 {
-    font-size: 24px;
-    font-family: Georgia, serif;
-    margin-top: 8px;
-}
-.info h3 {
-    color: #f7c948;
-    margin: 4px 0 4px;
-    font-size: 1rem;
-}
-.info h6 {
-    color: #b8b0d9;
-    font-weight: 400;
-    font-size: 0.85rem;
+td img{
+width:50px;
+height:50px;
+object-fit:cover;
+border-radius:50%;
 }
 
-.info hr {
-    border: none;
-    height: 1px;
-    background: #f7c948;
-    width: 60%;
-    margin: 12px auto;
+.btn-delete{
+background:#d9534f;
+color:white;
+padding:6px 12px;
+border:none;
+border-radius:4px;
+cursor:pointer;
 }
 
-.contact { text-align: left; margin-top: 12px; }
-.contact p {
-    margin: 8px 0;
-    font-size: 13.5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.contact i {
-    color: #f7c948;
-    width: 20px;
-    text-align: center;
-}
-
-.social {
-    margin-top: 16px;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-}
-.social a {
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,.08);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    text-decoration: none;
-    transition: .3s;
-}
-.social a:hover {
-    background: #f7c948;
-    color: #26166f;
-}
-
-/* ===== LOADING / EMPTY ===== */
-.loading, .no-result {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 60px 20px;
-    background: white;
-    border-radius: 24px;
-    color: #64748b;
-    font-size: 1.15rem;
-}
-.no-result i { font-size: 2.5rem; display: block; margin-bottom: 15px; color: #cbd5e1; }
-
-/* ===== MODAL ===== */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(5px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-    opacity: 0;
-    pointer-events: none;
-    transition: 0.3s;
-}
-.modal-overlay.active { opacity: 1; pointer-events: auto; }
-
-.modal {
-    background: white;
-    border-radius: 28px;
-    padding: 35px 40px;
-    max-width: 550px;
-    width: 92%;
-    max-height: 92vh;
-    overflow-y: auto;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.2);
-    transform: scale(0.93);
-    transition: 0.3s;
-}
-.modal-overlay.active .modal { transform: scale(1); }
-
-.modal h3 {
-    font-size: 1.7rem;
-    font-weight: 700;
-    color: #26166f;
-}
-.modal .sub { color: #64748b; margin-bottom: 20px; }
-
-.modal label {
-    font-weight: 600;
-    color: #1e293b;
-    display: block;
-    margin-top: 14px;
-    margin-bottom: 4px;
-    font-size: 0.9rem;
-}
-.modal label .required {
-    color: #dc2626;
-    margin-left: 3px;
-}
-.modal input, .modal textarea, .modal select {
-    width: 100%;
-    padding: 12px 18px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    transition: 0.2s;
-    background: white;
-}
-.modal input:focus, .modal textarea:focus, .modal select:focus {
-    outline: none;
-    border-color: #f7c948;
-    box-shadow: 0 0 0 4px rgba(247, 201, 72, 0.12);
-}
-.modal select {
-    appearance: auto;
-    cursor: pointer;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-    justify-content: flex-end;
-}
-.modal-actions .admin-btn { padding: 12px 30px; }
-
-/* ===== FOOTER ===== */
-.quote {
-    text-align: center;
-    padding: 35px 20px;
-    color: #1c2b5a;
-    font-style: italic;
-    font-size: 20px;
-}
-.footer {
-    background: #001a5c;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .hero h1 { font-size: 32px; }
-    .admin-bar { flex-direction: column; align-items: stretch; }
-    .admin-actions { justify-content: center; }
-    .search-section { flex-direction: column; }
-    .container { padding: 0 15px; }
-    .modal { padding: 25px 20px; }
+.btn-delete:hover{
+background:#c9302c;
 }
 </style>
 </head>
 <body>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
-    <h1>Our <span>Teachers</span></h1>
-    <div class="line"></div>
-    <p>Meet Our Experienced and Dedicated Faculty Members</p>
-</section>
+<div class="admin-container">
+<header>
+<h1>Teacher Management - Admin Panel</h1>
+<p>Add, View, and Delete Teachers from Firebase Database</p>
+</header>
 
-<!-- ===== ADMIN PANEL ===== -->
-<div class="admin-panel">
-    <div class="admin-bar">
-        <div class="brand">
-            <i class="fas fa-user-tie"></i>
-            অ্যাডমিন প্যানেল
-            <span class="badge">মোট <span id="teacherCount">০</span></span>
-        </div>
-        <div class="admin-actions">
-            <button class="admin-btn success" id="addTeacherBtn">
-                <i class="fas fa-plus"></i> যোগ করুন
-            </button>
-            <button class="admin-btn danger" id="removeAllBtn">
-                <i class="fas fa-trash"></i> সব ডিলিট
-            </button>
-            <button class="admin-btn outline" id="refreshBtn">
-                <i class="fas fa-sync"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Search & Filter -->
-    <div class="search-section">
-        <input type="text" id="searchInput" placeholder="🔍 নাম, বিভাগ বা বিষয় দিয়ে খুঁজুন...">
-        <div class="filter-group">
-            <button class="filter-btn active" data-filter="all">সব</button>
-            <button class="filter-btn" data-filter="ফাইন্যান্স">ফাইন্যান্স</button>
-            <button class="filter-btn" data-filter="গণিত">গণিত</button>
-            <button class="filter-btn" data-filter="ইতিহাস">ইতিহাস</button>
-            <button class="filter-btn" data-filter="ব্যবস্থাপনা">ব্যবস্থাপনা</button>
-        </div>
-    </div>
+<div class="main-content">
+<div class="form-box">
+<h2>Add New Teacher</h2>
+<form id="teacherForm">
+<div class="input-group">
+<label>Full Name</label>
+<input type="text" id="name" required placeholder="Ex: Shahadat Hossain">
+</div>
+<div class="input-group">
+<label>Designation</label>
+<input type="text" id="designation" required placeholder="Ex: Assistant Professor">
+</div>
+<div class="input-group">
+<label>Subject / Course</label>
+<input type="text" id="subject" required placeholder="Ex: Principles of finance">
+</div>
+<div class="input-group">
+<label>Phone Number</label>
+<input type="text" id="phone" required placeholder="Ex: 01689801XXX">
+</div>
+<div class="input-group">
+<label>Email Address</label>
+<input type="email" id="email" placeholder="Ex: name@gmail.com">
+</div>
+<div class="input-group">
+<label>Department</label>
+<input type="text" id="department" required placeholder="Ex: Department of Finance">
+</div>
+<div class="input-group">
+<label>Image URL</label>
+<input type="url" id="imageUrl" required placeholder="Paste image online link/URL">
+</div>
+<button type="submit">Save Teacher</button>
+</form>
 </div>
 
-<!-- ===== CARDS ===== -->
-<div class="container" id="cardsContainer">
-    <div class="loading"><i class="fas fa-spinner fa-spin"></i> লোড হচ্ছে...</div>
+<div class="data-box">
+<h2>Current Teachers List</h2>
+<table>
+<thead>
+<tr>
+<th>Image</th>
+<th>Name</th>
+<th>Designation & Subject</th>
+<th>Department</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="teachersTableBody">
+</tbody>
+</table>
+</div>
+</div>
 </div>
 
-<!-- ===== QUOTE & FOOTER ===== -->
-<div class="quote">
-    "Education is the most powerful weapon which you can use to change the world."<br>
-    — Nelson Mandela
-</div>
-<div class="footer">
-    © 2026 University Name. All Rights Reserved.
-</div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+  import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
-<!-- ===== MODAL ===== -->
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-        <h3 id="modalTitle">👨‍🏫 নতুন শিক্ষক</h3>
-        <p class="sub" id="modalSub">শিক্ষকের সম্পূর্ণ তথ্য দিন। <span style="color:#dc2626;">*</span> চিহ্নিত ঘরগুলো অবশ্যই পূরণ করতে হবে।</p>
-        <form id="teacherForm">
-            <label>পূর্ণ নাম <span class="required">*</span></label>
-            <input type="text" id="formName" placeholder="যেমন: শাহাদাত হোসেন" required>
-
-            <label>পদবী <span class="required">*</span></label>
-            <input type="text" id="formTitle" placeholder="যেমন: সহকারী অধ্যাপক" required>
-
-            <label>কোর্স / বিষয়</label>
-            <input type="text" id="formCourse" placeholder="যেমন: ফাইন্যান্সের মূলনীতি">
-
-            <label>ফোন</label>
-            <input type="text" id="formPhone" placeholder="০১৬৮৯৮০১৩০৮">
-
-            <label>ইমেইল</label>
-            <input type="email" id="formEmail" placeholder="shahadat0834@gmail.com">
-
-            <label>বিভাগ <span class="required">*</span></label>
-            <select id="formDept" required>
-                <option value="ফাইন্যান্স">ফাইন্যান্স</option>
-                <option value="গণিত">গণিত</option>
-                <option value="ইতিহাস">ইতিহাস</option>
-                <option value="ব্যবস্থাপনা">ব্যবস্থাপনা</option>
-                <option value="অর্থনীতি">অর্থনীতি</option>
-                <option value="ইংরেজি">ইংরেজি</option>
-                <option value="বাংলা">বাংলা</option>
-            </select>
-
-            <label>ছবির URL</label>
-            <input type="text" id="formImg" placeholder="https://hbuc.edu.bd/... (ঐচ্ছিক)">
-
-            <label>শিক্ষার যোগ্যতা</label>
-            <input type="text" id="formQualification" placeholder="যেমন: এম.এ, পিএইচডি">
-
-            <label>জয়েন করার বছর</label>
-            <input type="text" id="formJoiningYear" placeholder="যেমন: ২০২০">
-
-            <div class="modal-actions">
-                <button type="button" class="admin-btn outline" id="modalCancelBtn">বাতিল</button>
-                <button type="submit" class="admin-btn primary" id="modalSaveBtn">
-                    <i class="fas fa-save"></i> সংরক্ষণ
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-// ============================================================
-//  🔥 FIREBASE CONFIGURATION
-// ============================================================
-const firebaseConfig = {
+  // আপনার দেওয়া Firebase Config
+  const firebaseConfig = {
     apiKey: "AIzaSyCEQ31b4AnS3QgXOkNaLN0cbBh0WTAzz6k",
     authDomain: "hbuc-teachcer.firebaseapp.com",
+    databaseURL: "https://hbuc-teachcer-default-rtdb.firebaseio.com",
     projectId: "hbuc-teachcer",
     storageBucket: "hbuc-teachcer.firebasestorage.app",
     messagingSenderId: "482109695307",
-    appId: "1:482109695307:web:072d65e66f3a61fdcd34ce",
-};
+    appId: "1:482109695307:web:b5bd4adeaf57fc47cd34ce",
+    measurementId: "G-4X6LKDGD34"
+  };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const teachersCollection = db.collection('teachers');
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const rtdb = getDatabase(app);
 
-// ============================================================
-//  STATE
-// ============================================================
-let teachers = [];
-let editingId = null;
-let currentFilter = 'all';
-let searchQuery = '';
+  const teacherForm = document.getElementById('teacherForm');
+  const tableBody = document.getElementById('teachersTableBody');
 
-const container = document.getElementById('cardsContainer');
-const teacherCount = document.getElementById('teacherCount');
-const searchInput = document.getElementById('searchInput');
-
-// Modal
-const overlay = document.getElementById('modalOverlay');
-const modalTitle = document.getElementById('modalTitle');
-const modalSub = document.getElementById('modalSub');
-const form = document.getElementById('teacherForm');
-const formName = document.getElementById('formName');
-const formTitle = document.getElementById('formTitle');
-const formCourse = document.getElementById('formCourse');
-const formPhone = document.getElementById('formPhone');
-const formEmail = document.getElementById('formEmail');
-const formDept = document.getElementById('formDept');
-const formImg = document.getElementById('formImg');
-const formQualification = document.getElementById('formQualification');
-const formJoiningYear = document.getElementById('formJoiningYear');
-const modalCancel = document.getElementById('modalCancelBtn');
-const modalSave = document.getElementById('modalSaveBtn');
-
-// ============================================================
-//  LOAD DATA
-// ============================================================
-async function loadTeachers() {
-    try {
-        container.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> লোড হচ্ছে...</div>`;
-        const snapshot = await teachersCollection.orderBy('name').get();
-        teachers = [];
-        snapshot.forEach(doc => {
-            teachers.push({ ...doc.data(), firestoreId: doc.id });
-        });
-        applyFilters();
-    } catch (error) {
-        console.error('Load error:', error);
-        container.innerHTML = `<div class="no-result"><i class="fas fa-exclamation-triangle"></i>ডেটা লোড করতে সমস্যা হয়েছে।</div>`;
-    }
-}
-
-// ============================================================
-//  FILTER & RENDER
-// ============================================================
-function applyFilters() {
-    const query = searchInput.value.trim().toLowerCase();
-    const filter = currentFilter;
-
-    let filtered = teachers.filter(teacher => {
-        // Search
-        const searchable = (teacher.name + ' ' + teacher.dept + ' ' + teacher.course + ' ' + teacher.title + ' ' + teacher.qualification).toLowerCase();
-        const matchSearch = query === '' || searchable.includes(query);
-
-        // Department filter
-        let matchDept = true;
-        if (filter !== 'all') {
-            matchDept = (teacher.dept || '').toLowerCase().includes(filter.toLowerCase());
-        }
-        return matchSearch && matchDept;
-    });
-
-    render(filtered);
-}
-
-function render(filteredTeachers) {
-    container.innerHTML = '';
-
-    if (filteredTeachers.length === 0) {
-        container.innerHTML = `<div class="no-result">
-            <i class="fas fa-user-graduate"></i>
-            ${teachers.length === 0 ? 'কোনো শিক্ষক যোগ করা হয়নি।' : 'খুঁজে পাওয়া যায়নি।'}
-        </div>`;
-        teacherCount.textContent = teachers.length;
-        return;
-    }
-
-    filteredTeachers.forEach((teacher) => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.id = teacher.firestoreId;
-
-        const imgSrc = teacher.img && teacher.img.trim() !== '' ? teacher.img :
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=26166f&color=f7c948&size=200`;
-
-        card.innerHTML = `
-            <button class="remove-btn" data-id="${teacher.firestoreId}">
-                <i class="fas fa-times"></i> ডিলিট
-            </button>
-            <span class="edit-badge"><i class="fas fa-pen"></i> ডাবল-ক্লিক করুন</span>
-            <img src="${imgSrc}" alt="${teacher.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=26166f&color=f7c948&size=200'">
-            <div class="info">
-                <div class="cap"><i class="fas fa-graduation-cap"></i></div>
-                <h2>${teacher.name}</h2>
-                <h3>${teacher.title || 'অধ্যাপক'}</h3>
-                <h6>${teacher.course || ''}</h6>
-                <hr>
-                <div class="contact">
-                    <p><i class="fas fa-phone"></i> ${teacher.phone || '—'}</p>
-                    <p><i class="fas fa-envelope"></i> ${teacher.email || '—'}</p>
-                    <p><i class="fas fa-location-dot"></i> ${teacher.dept || 'ফাইন্যান্স'}</p>
-                    ${teacher.qualification ? `<p><i class="fas fa-graduation-cap"></i> ${teacher.qualification}</p>` : ''}
-                    ${teacher.joiningYear ? `<p><i class="fas fa-calendar"></i> ${teacher.joiningYear}</p>` : ''}
-                </div>
-                <div class="social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fas fa-envelope"></i></a>
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
-
-        // Delete with confirmation
-        const removeBtn = card.querySelector('.remove-btn');
-        removeBtn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const docId = this.dataset.id;
-            const teacherName = teachers.find(t => t.firestoreId === docId)?.name || '';
-            if (confirm(`⚠️ "${teacherName}"-কে ডিলিট করতে চান? এই কাজটি বাতিল করা যাবে না।`)) {
-                await deleteTeacher(docId);
-            }
-        });
-
-        // Double-click to edit
-        card.addEventListener('dblclick', function() {
-            const docId = this.dataset.id;
-            openEditModal(docId);
-        });
-    });
-
-    teacherCount.textContent = teachers.length;
-}
-
-// ============================================================
-//  CRUD OPERATIONS
-// ============================================================
-async function deleteTeacher(docId) {
-    try {
-        await teachersCollection.doc(docId).delete();
-        teachers = teachers.filter(t => t.firestoreId !== docId);
-        applyFilters();
-    } catch (error) {
-        console.error('Delete error:', error);
-        alert('ডিলিট করতে সমস্যা হয়েছে।');
-    }
-}
-
-async function addTeacherToFirebase(data) {
-    try {
-        const docRef = await teachersCollection.add(data);
-        const newTeacher = { ...data, firestoreId: docRef.id };
-        teachers.push(newTeacher);
-        applyFilters();
-        return true;
-    } catch (error) {
-        console.error('Add error:', error);
-        alert('যোগ করতে সমস্যা হয়েছে।');
-        return false;
-    }
-}
-
-async function updateTeacherInFirebase(docId, data) {
-    try {
-        await teachersCollection.doc(docId).update(data);
-        const index = teachers.findIndex(t => t.firestoreId === docId);
-        if (index !== -1) {
-            teachers[index] = { ...data, firestoreId: docId };
-            applyFilters();
-        }
-        return true;
-    } catch (error) {
-        console.error('Update error:', error);
-        alert('আপডেট করতে সমস্যা হয়েছে।');
-        return false;
-    }
-}
-
-// ============================================================
-//  MODAL CONTROLS
-// ============================================================
-function openModal(mode, docId = null) {
-    overlay.classList.add('active');
-    if (mode === 'add') {
-        modalTitle.textContent = '👨‍🏫 নতুন শিক্ষক যোগ করুন';
-        modalSub.textContent = 'শিক্ষকের সম্পূর্ণ তথ্য দিন। * চিহ্নিত ঘরগুলো অবশ্যই পূরণ করতে হবে।';
-        form.reset();
-        formName.value = '';
-        formTitle.value = '';
-        formCourse.value = '';
-        formPhone.value = '';
-        formEmail.value = '';
-        formDept.value = 'ফাইন্যান্স';
-        formImg.value = '';
-        formQualification.value = '';
-        formJoiningYear.value = '';
-        editingId = null;
-        form.dataset.mode = 'add';
-        modalSave.innerHTML = '<i class="fas fa-save"></i> সংরক্ষণ';
-    } else if (mode === 'edit' && docId) {
-        const teacher = teachers.find(t => t.firestoreId === docId);
-        if (!teacher) return;
-        modalTitle.textContent = '✏️ শিক্ষক সম্পাদনা';
-        modalSub.textContent = 'তথ্য আপডেট করুন। * চিহ্নিত ঘরগুলো অবশ্যই পূরণ করতে হবে।';
-        formName.value = teacher.name || '';
-        formTitle.value = teacher.title || '';
-        formCourse.value = teacher.course || '';
-        formPhone.value = teacher.phone || '';
-        formEmail.value = teacher.email || '';
-        formDept.value = teacher.dept || 'ফাইন্যান্স';
-        formImg.value = teacher.img || '';
-        formQualification.value = teacher.qualification || '';
-        formJoiningYear.value = teacher.joiningYear || '';
-        editingId = docId;
-        form.dataset.mode = 'edit';
-        modalSave.innerHTML = '<i class="fas fa-save"></i> আপডেট';
-    }
-}
-
-function closeModal() {
-    overlay.classList.remove('active');
-    editingId = null;
-    form.dataset.mode = '';
-}
-
-// ============================================================
-//  FORM SUBMIT
-// ============================================================
-form.addEventListener('submit', async function(e) {
+  // ১. ডেটাবেজে নতুন টিচার ডাটা সাবমিট করা (Firestore & Realtime Database both)
+  teacherForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = formName.value.trim();
-    const title = formTitle.value.trim();
-    const course = formCourse.value.trim();
-    const phone = formPhone.value.trim();
-    const email = formEmail.value.trim();
-    const dept = formDept.value;
-    const img = formImg.value.trim();
-    const qualification = formQualification.value.trim();
-    const joiningYear = formJoiningYear.value.trim();
 
-    if (!name || !title || !dept) {
-        alert('নাম, পদবী এবং বিভাগ অবশ্যই দিতে হবে।');
-        return;
-    }
-
-    const data = { 
-        name, 
-        title, 
-        course, 
-        phone, 
-        email, 
-        dept, 
-        img,
-        qualification,
-        joiningYear
+    const teacherData = {
+      name: document.getElementById('name').value,
+      designation: document.getElementById('designation').value,
+      subject: document.getElementById('subject').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value || "N/A",
+      department: document.getElementById('department').value,
+      imageUrl: document.getElementById('imageUrl').value,
+      createdAt: new Date().toISOString()
     };
 
-    const mode = form.dataset.mode;
-    let success = false;
-    if (mode === 'add') {
-        success = await addTeacherToFirebase(data);
-    } else if (mode === 'edit' && editingId) {
-        success = await updateTeacherInFirebase(editingId, data);
+    try {
+      // Firestore-এ সেভ করা
+      const docRef = await addDoc(collection(db, "teachers"), teacherData);
+      
+      // Realtime Database-এও একই ID দিয়ে ব্যাকআপ বা সেভ করা
+      await set(ref(rtdb, 'teachers/' + docRef.id), teacherData);
+
+      alert("Teacher added successfully to both databases!");
+      teacherForm.reset();
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      alert("Something went wrong! Check console.");
     }
+  });
 
-    if (success) closeModal();
-});
+  // ২. ফায়ারবেস (Firestore) থেকে রিয়েলটাইম ডাটা তুলে এনে টেবিলে দেখানো
+  onSnapshot(collection(db, "teachers"), (snapshot) => {
+    tableBody.innerHTML = ""; // টেবিল ক্লিয়ার করা
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const id = docSnap.id;
 
-// ============================================================
-//  EVENT LISTENERS
-// ============================================================
-document.getElementById('addTeacherBtn').addEventListener('click', () => openModal('add'));
-modalCancel.addEventListener('click', closeModal);
-overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) closeModal();
-});
-
-// Refresh
-document.getElementById('refreshBtn').addEventListener('click', loadTeachers);
-
-// Remove All with confirmation
-document.getElementById('removeAllBtn').addEventListener('click', async function() {
-    if (teachers.length === 0) return;
-    if (confirm('⚠️ আপনি কি সব শিক্ষক ডিলিট করতে চান? এই কাজটি বাতিল করা যাবে না!')) {
-        try {
-            const batch = db.batch();
-            teachers.forEach(t => {
-                const ref = teachersCollection.doc(t.firestoreId);
-                batch.delete(ref);
-            });
-            await batch.commit();
-            teachers = [];
-            applyFilters();
-        } catch (error) {
-            console.error('Remove all error:', error);
-            alert('সব ডিলিট করতে সমস্যা হয়েছে।');
-        }
-    }
-});
-
-// Search
-searchInput.addEventListener('input', function() {
-    applyFilters();
-});
-
-// Filter buttons
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentFilter = this.dataset.filter;
-        applyFilters();
+      const row = `
+        <tr>
+          <td><img src="${data.imageUrl}" alt="photo"></td>
+          <td><strong>${data.name}</strong><br><small>${data.email}</small></td>
+          <td>${data.designation}<br><small>(${data.subject})</small></td>
+          <td>${data.department}</td>
+          <td>
+            <button class="btn-delete" data-id="${id}"><i class="fas fa-trash"></i> Delete</button>
+          </td>
+        </tr>
+      `;
+      tableBody.innerHTML += row;
     });
-});
 
-// Open edit modal
-function openEditModal(docId) {
-    openModal('edit', docId);
-}
+    // ডিলিট বাটনে ক্লিক ইভেন্ট সেট করা
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const docId = btn.getAttribute('data-id');
+        deleteTeacher(docId);
+      });
+    });
+  });
 
-// ============================================================
-//  INIT
-// ============================================================
-loadTeachers();
+  // ৩. ডাটা ডিলিট করার ফাংশন (Firestore & Realtime Database both)
+  async function deleteTeacher(id) {
+    if(confirm("Are you sure you want to delete this teacher?")) {
+      try {
+        // Firestore থেকে ডিলিট
+        await deleteDoc(doc(db, "teachers", id));
+        // Realtime Database থেকে ডিলিট
+        await remove(ref(rtdb, 'teachers/' + id));
+        alert("Teacher deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting document: ", error);
+      }
+    }
+  }
 </script>
 
 </body>

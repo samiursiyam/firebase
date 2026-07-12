@@ -1,445 +1,1407 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📋 অ্যাডমিন · নোটিশ বোর্ড</title>
-
-    <!-- Firebase SDKs (v9 modular) -->
-    <script type="module">
-        // ----- Firebase Import & Config -----
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
-        import { 
-            getFirestore, 
-            collection, 
-            getDocs, 
-            addDoc, 
-            deleteDoc, 
-            doc,
-            orderBy,
-            query,
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-        // 🔥 আপনার Firebase config (প্রতিস্থাপন করুন)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDummyKeyReplaceWithYourOwn",
-            authDomain: "your-project.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef123456",
-            measurementId: "G-XXXXXXXX"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
-
-        // DOM refs
-        const form = document.getElementById('noticeForm');
-        const titleInput = document.getElementById('title');
-        const textInput = document.getElementById('text');
-        const dateInput = document.getElementById('date');
-        const imageInput = document.getElementById('imageUrl');
-        const noticeList = document.getElementById('noticeList');
-        const loadMsg = document.getElementById('loadMsg');
-
-        // ---------- রেন্ডার ফাংশন (Firestore থেকে পড়ে) ----------
-        async function renderNotices() {
-            try {
-                loadMsg.textContent = '⏳ লোড হচ্ছে...';
-                const q = query(collection(db, "notices"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(q);
-                noticeList.innerHTML = '';
-
-                if (querySnapshot.empty) {
-                    noticeList.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">📭 কোনো নোটিশ নেই</td></tr>`;
-                    loadMsg.textContent = '✅ সর্বশেষ নোটিশ';
-                    return;
-                }
-
-                let counter = 1;
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const id = docSnap.id;
-                    const title = data.title || 'শিরোনাম নেই';
-                    const text = data.text || 'বিবরণ নেই';
-                    const date = data.date || 'তারিখ নেই';
-                    const imageUrl = data.imageUrl || 'images/notice1.jpg';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${counter++}</td>
-                        <td><strong>${title}</strong></td>
-                        <td>${text}</td>
-                        <td>${date}</td>
-                        <td>
-                            <button class="delete-btn" data-id="${id}" style="background:#fee2e2; border:none; padding:6px 16px; border-radius:40px; font-weight:600; color:#b91c1c; cursor:pointer; transition:0.15s;">🗑️ ডিলিট</button>
-                        </td>
-                    `;
-                    noticeList.appendChild(tr);
-                });
-
-                // প্রতি ডিলিট বাটনে আলাদা ইভেন্ট লিসেনার (প্রতিটি আলাদা)
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = btn.dataset.id;
-                        if (confirm('এই নোটিশটি স্থায়ীভাবে ডিলিট করবেন?')) {
-                            try {
-                                await deleteDoc(doc(db, "notices", id));
-                                renderNotices(); // রিফ্রেশ
-                            } catch (error) {
-                                alert('ডিলিট করতে সমস্যা: ' + error.message);
-                            }
-                        }
-                    });
-                });
-
-                loadMsg.textContent = '✅ সর্বশেষ নোটিশ';
-
-            } catch (error) {
-                console.error("রেন্ডার ত্রুটি:", error);
-                loadMsg.textContent = '⚠️ ডেটা লোড করতে ব্যর্থ';
-                noticeList.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#b91c1c;">🔥 Firebase সংযোগ সমস্যা। config চেক করুন।</td></tr>`;
-            }
-        }
-
-        // ---------- নতুন নোটিশ যোগ করুন ----------
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const title = titleInput.value.trim();
-            const text = textInput.value.trim();
-            const date = dateInput.value.trim();
-            const imageUrl = imageInput.value.trim() || 'images/notice1.jpg';
-
-            if (!title || !text || !date) {
-                alert('শিরোনাম, বিবরণ ও তারিখ অবশ্যই দিতে হবে।');
-                return;
-            }
-
-            try {
-                await addDoc(collection(db, "notices"), {
-                    title,
-                    text,
-                    date,
-                    imageUrl,
-                    createdAt: serverTimestamp()
-                });
-
-                form.reset();
-                renderNotices(); 
-                alert('✅ নোটিশ সফলভাবে যোগ করা হয়েছে!');
-
-            } catch (error) {
-                alert('যোগ করতে ব্যর্থ: ' + error.message);
-                console.error(error);
-            }
-        });
-
-        // ---------- শুরুতে রেন্ডার ----------
-        renderNotices();
-
-        window.__db = db;
-        console.log("✅ Firebase Admin Panel ready. প্রতিটি নোটিশ আলাদাভাবে ডিলিট করা যায়!");
-    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Notice Admin Panel</title>
 
     <style>
+        /* ── reset & base ── */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
         }
 
         body {
             min-height: 100vh;
-            padding: 30px 20px;
+            padding: 24px;
             background:
-                radial-gradient(circle at top left, #818cf8 0%, transparent 35%),
-                radial-gradient(circle at bottom right, #60a5fa 0%, transparent 35%),
-                linear-gradient(145deg, #f1f5f9, #e2e8f0);
-        }
-
-        .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 40px;
-            padding: 30px 35px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        .admin-header {
+                radial-gradient(circle at 0% 0%, #60a5fa 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, #818cf8 0%, transparent 40%),
+                linear-gradient(135deg, #f0f4ff, #e0e7ff, #f1f5f9);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 30px;
+            justify-content: center;
+            align-items: flex-start;
         }
 
+        .app-wrapper {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── header ── */
+        .admin-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
         .admin-header h1 {
-            font-size: 2.2rem;
+            font-size: clamp(2rem, 4.5vw, 3rem);
             color: #0f172a;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
-
-        .admin-header small {
+        .admin-header h1 span {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .admin-header p {
             color: #475569;
-            background: rgba(255, 255, 255, 0.6);
-            padding: 6px 18px;
-            border-radius: 40px;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1.05rem;
+            margin-top: 4px;
         }
 
-        .form-card {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(8px);
-            padding: 25px 28px;
-            border-radius: 28px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
-        }
-
-        .form-grid {
+        /* ── stats grid ── */
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 18px;
-            align-items: end;
+            gap: 20px;
+            margin-bottom: 32px;
         }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+        .stat-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 22px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            text-align: center;
         }
-
-        .form-group label {
-            font-weight: 600;
-            font-size: 14px;
-            color: #1e293b;
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+        }
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+        .stat-card .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
             letter-spacing: 0.3px;
         }
 
+        /* ── glass card container ── */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 28px;
+            padding: 28px 30px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            margin-bottom: 32px;
+            transition: box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08);
+        }
+
+        .glass-card h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .glass-card h2 small {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-left: auto;
+        }
+
+        /* ── form ── */
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        .form-group label .required {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+        .form-group label .optional {
+            color: #94a3b8;
+            font-weight: 400;
+            font-size: 0.8rem;
+            margin-left: 4px;
+        }
         .form-group input,
         .form-group textarea {
+            width: 100%;
             padding: 12px 16px;
-            border: 1px solid #cbd5e1;
-            border-radius: 18px;
-            font-size: 15px;
-            background: rgba(255, 255, 255, 0.7);
+            border-radius: 14px;
+            border: 1.5px solid rgba(203, 213, 225, 0.6);
+            background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(4px);
-            transition: 0.2s;
+            font-size: 1rem;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
             outline: none;
+            color: #0f172a;
+            -webkit-appearance: none;
+            appearance: none;
         }
-
         .form-group input:focus,
         .form-group textarea:focus {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-            background: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            background: rgba(255, 255, 255, 0.8);
         }
-
         .form-group textarea {
+            min-height: 90px;
             resize: vertical;
-            min-height: 50px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
         }
 
-        .btn-submit {
-            background: #4f46e5;
-            color: white;
-            border: none;
-            padding: 12px 28px;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 32px;
             border-radius: 40px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 1rem;
+            border: none;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(4px);
-            margin-top: 8px;
-            height: 52px;
-            white-space: nowrap;
-        }
-
-        .btn-submit:hover {
-            background: #4338ca;
-            transform: scale(1.02);
-            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(8px);
-            padding: 6px 2px 10px 2px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 15px;
-        }
-
-        th {
-            text-align: left;
-            padding: 16px 12px;
-            background: rgba(241, 245, 249, 0.7);
-            backdrop-filter: blur(4px);
-            color: #0f172a;
-            font-weight: 600;
-            border-bottom: 2px solid rgba(148, 163, 184, 0.3);
-        }
-
-        td {
-            padding: 14px 12px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-            vertical-align: middle;
+            transition: all 0.25s ease;
+            background: #e2e8f0;
             color: #1e293b;
+            touch-action: manipulation;
+            user-select: none;
+            min-height: 48px;
+            min-width: 48px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(37, 99, 235, 0.35);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(239, 68, 68, 0.3);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(34, 197, 94, 0.3);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+        }
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(245, 158, 11, 0.3);
+        }
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            min-height: 40px;
+            min-width: 40px;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.4);
+        .form-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
         }
 
-        .delete-btn {
-            background: #fee2e2;
-            border: none;
-            padding: 6px 16px;
+        /* ── notices list ── */
+        .notices-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .notice-item {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .notice-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .notice-item .item-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+        .notice-item .item-img-placeholder {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+        .notice-item .item-body {
+            padding: 18px 20px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .notice-item .item-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+        .notice-item .item-date {
+            font-size: 0.8rem;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.12);
+            display: inline-block;
+            padding: 3px 14px;
             border-radius: 40px;
             font-weight: 600;
-            color: #b91c1c;
-            cursor: pointer;
-            transition: 0.15s;
-            font-size: 14px;
+            margin-bottom: 10px;
+            align-self: flex-start;
         }
-
-        .delete-btn:hover {
-            background: #fecaca;
-            transform: scale(1.05);
-        }
-
-        .load-status {
-            margin: 18px 0 10px 0;
-            font-size: 14px;
+        .notice-item .item-desc {
             color: #475569;
-            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            flex: 1;
+            margin-bottom: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .notice-item .item-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
         }
 
-        .back-link {
+        /* ── toast / message ── */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 420px;
+            width: 100%;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 16px 22px;
+            border-radius: 16px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 0.95rem;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
+            animation: slideIn 0.35s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast-success {
+            background: rgba(34, 197, 94, 0.92);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+        .toast-error {
+            background: rgba(239, 68, 68, 0.92);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .toast-info {
+            background: rgba(59, 130, 246, 0.92);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .toast .toast-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .toast .toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: color 0.2s;
+        }
+        .toast .toast-close:hover {
+            color: #fff;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(40px) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        /* ── loading spinner ── */
+        .spinner {
             display: inline-block;
-            margin-top: 20px;
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: 500;
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
         }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 700px) {
-            .admin-container {
-                padding: 20px 15px;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
             }
+        }
+
+        .loading-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            grid-column: 1 / -1;
+        }
+        .loading-placeholder .spinner {
+            border-color: rgba(37, 99, 235, 0.15);
+            border-top-color: #2563eb;
+            width: 36px;
+            height: 36px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: #94a3b8;
+        }
+        .empty-state span {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* ── confirmation modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.25s ease;
+            padding: 20px;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        .modal-box {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 36px 40px 32px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            text-align: center;
+            animation: scaleIn 0.3s ease;
+        }
+        @keyframes scaleIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.94);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .modal-box h3 {
+            font-size: 1.3rem;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        .modal-box p {
+            color: #64748b;
+            margin-bottom: 24px;
+            font-size: 1rem;
+        }
+        .modal-box .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .modal-box .modal-actions .btn {
+            flex: 1 1 auto;
+            min-width: 100px;
+        }
+
+        /* ── responsive: mobile-first enhancements ── */
+
+        /* Small phones */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
             .admin-header h1 {
-                font-size: 1.7rem;
+                font-size: 1.6rem;
             }
-            .form-grid {
+            .admin-header p {
+                font-size: 0.9rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 14px 10px;
+                border-radius: 16px;
+            }
+            .stat-card .stat-icon {
+                font-size: 1.3rem;
+            }
+            .stat-card .stat-number {
+                font-size: 1.3rem;
+            }
+            .stat-card .stat-label {
+                font-size: 0.7rem;
+            }
+
+            .glass-card {
+                padding: 18px 14px;
+                border-radius: 20px;
+            }
+            .glass-card h2 {
+                font-size: 1.1rem;
+                gap: 6px;
+            }
+            .glass-card h2 small {
+                font-size: 0.75rem;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                padding: 10px 14px;
+                font-size: 0.95rem;
+                border-radius: 12px;
+            }
+            .form-group textarea {
+                min-height: 70px;
+            }
+            .form-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
-            .btn-submit {
-                width: 100%;
-                justify-content: center;
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+                min-height: 44px;
+                min-width: 44px;
+                border-radius: 30px;
             }
-            th,
-            td {
-                padding: 10px 8px;
-                font-size: 14px;
+            .btn-sm {
+                padding: 6px 14px;
+                font-size: 0.8rem;
+                min-height: 36px;
+                min-width: 36px;
+            }
+
+            .form-actions {
+                gap: 10px;
+            }
+            .form-actions .btn {
+                flex: 1 1 auto;
+                min-width: 80px;
+            }
+
+            .notices-list {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .notice-item .item-img,
+            .notice-item .item-img-placeholder {
+                height: 140px;
+            }
+            .notice-item .item-body {
+                padding: 14px 16px 16px;
+            }
+            .notice-item .item-title {
+                font-size: 1rem;
+            }
+            .notice-item .item-desc {
+                font-size: 0.9rem;
+                -webkit-line-clamp: 4;
+            }
+
+            .toast-container {
+                top: 12px;
+                right: 12px;
+                left: 12px;
+                max-width: 100%;
+            }
+            .toast {
+                padding: 14px 18px;
+                font-size: 0.9rem;
+                border-radius: 14px;
+            }
+
+            .modal-box {
+                padding: 24px 18px 20px;
+                border-radius: 22px;
+            }
+            .modal-box h3 {
+                font-size: 1.1rem;
+            }
+            .modal-box p {
+                font-size: 0.9rem;
+            }
+            .modal-box .modal-actions .btn {
+                min-width: 80px;
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Medium phones & small tablets */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+            .stat-card {
+                padding: 16px 12px;
+            }
+            .stat-card .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .glass-card {
+                padding: 20px 16px;
+            }
+
+            .notices-list {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+        }
+
+        /* Tablets and small desktops */
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+            .notices-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            .glass-card {
+                padding: 24px 22px;
+            }
+        }
+
+        /* Large screens - keep as is */
+        @media (min-width: 1025px) {
+            /* PC layout unchanged */
+        }
+
+        /* Touch-friendly: larger tap targets on touch devices */
+        @media (pointer: coarse) {
+            .btn {
+                min-height: 48px;
+                min-width: 48px;
+            }
+            .btn-sm {
+                min-height: 40px;
+                min-width: 40px;
+            }
+            .form-group input,
+            .form-group textarea {
+                font-size: 16px;
+                /* prevents iOS zoom */;
+            }
+        }
+
+        /* ── reduce motion preference ── */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
+    <div class="app-wrapper">
 
-        <!-- হেডার -->
-        <div class="admin-header">
-            <h1>📋 অ্যাডমিন প্যানেল</h1>
-            <small>🔥 Firebase · আলাদা ডিলিট</small>
-        </div>
+        <!-- ─── Header ─── -->
+        <header class="admin-header">
+            <h1>📢 <span>Notice Admin Panel</span></h1>
+            <p>Manage all notices — add, edit, delete with live sync</p>
+        </header>
 
-        <!-- নোটিশ যোগ ফর্ম -->
-        <div class="form-card">
-            <h3 style="margin-bottom: 18px; color: #0f172a;">➕ নতুন নোটিশ যোগ করুন</h3>
-            <form id="noticeForm">
-                <div class="form-grid">
+        <!-- ─── Stats ─── -->
+        <section class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-number" id="totalNotices">0</div>
+                <div class="stat-label">Total Notice</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🕒</div>
+                <div class="stat-number" id="lastUpdated">—</div>
+                <div class="stat-label">Last Updated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-number" id="statusBadge">● Live</div>
+                <div class="stat-label">Status</div>
+            </div>
+        </section>
+
+        <!-- ─── Add / Edit Form ─── -->
+        <section class="glass-card" id="formSection">
+            <h2 id="formTitle">✏️ Add New Notice <small id="formSubtitle">fill all fields</small></h2>
+
+            <form id="noticeForm" novalidate>
+                <div class="form-group">
+                    <label for="noticeTitle">Notice Title <span class="required">*</span></label>
+                    <input type="text" id="noticeTitle" placeholder="e.g. Annual Sports Day" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="noticeDescription">Description <span class="required">*</span></label>
+                    <textarea id="noticeDescription" placeholder="Write full description..." required></textarea>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="title">শিরোনাম *</label>
-                        <input type="text" id="title" placeholder="যেমন: ছুটির ঘোষণা" required>
+                        <label for="noticeDate">Date <span class="required">*</span></label>
+                        <input type="date" id="noticeDate" required />
                     </div>
                     <div class="form-group">
-                        <label for="text">বিবরণ *</label>
-                        <textarea id="text" placeholder="বিস্তারিত লেখা..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="date">তারিখ *</label>
-                        <input type="text" id="date" placeholder="১ জুলাই ২০২৬" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="imageUrl">ছবির URL (ঐচ্ছিক)</label>
-                        <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
-                    </div>
-                    <div class="form-group" style="grid-column: span 1; display: flex; align-items: flex-end;">
-                        <button type="submit" class="btn-submit">➕ প্রকাশ করুন</button>
+                        <label for="noticeImageUrl">Image URL <span class="optional">(optional)</span></label>
+                        <input type="url" id="noticeImageUrl" placeholder="https://example.com/image.jpg" />
                     </div>
                 </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        ➕ Add Notice
+                    </button>
+                    <button type="reset" class="btn" id="resetBtn" style="background:rgba(203,213,225,0.4);color:#334155;">
+                        ↺ Clear
+                    </button>
+                    <button type="button" class="btn btn-warning" id="cancelEditBtn" style="display:none;">
+                        ✖ Cancel Edit
+                    </button>
+                </div>
+
+                <!-- hidden field for editing -->
+                <input type="hidden" id="editDocId" value="" />
             </form>
-        </div>
+        </section>
 
-        <!-- নোটিশ তালিকা -->
-        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
-            <h3 style="color: #0f172a; margin-bottom: 8px;">📌 সকল নোটিশ</h3>
-            <span class="load-status" id="loadMsg">⏳ লোড হচ্ছে...</span>
-        </div>
+        <!-- ─── Notice List ─── -->
+        <section class="glass-card">
+            <h2>📰 All Notices <small id="noticeCountLabel">0 items</small></h2>
+            <div class="notices-list" id="noticesList">
+                <div class="loading-placeholder">
+                    <div class="spinner"></div>
+                    <p>Loading notices...</p>
+                </div>
+            </div>
+        </section>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>শিরোনাম</th>
-                        <th>বিবরণ</th>
-                        <th>তারিখ</th>
-                        <th>অ্যাকশন</th>
-                    </tr>
-                </thead>
-                <tbody id="noticeList">
-                    <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">⏳ ডেটা আনতে হচ্ছে...</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- লিংক: মূল পেজে ফিরে যান -->
-        <a href="#" class="back-link" onclick="alert('মূল নোটিশ বোর্ড পেজে যেতে চাইলে URL পরিবর্তন করুন।'); return false;">← মূল নোটিশ বোর্ড</a>
-
-        <div style="margin-top: 20px; font-size: 13px; color: #64748b; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 18px; text-align: center;">
-            ⚡ Firebase Firestore · প্রতিটি নোটিশ আলাদাভাবে ডিলিট করা যায় <br>
-            <span style="background: #e2e8f0; padding: 2px 14px; border-radius: 30px; font-size:12px;">Firebase config প্রতিস্থাপন করুন</span>
-        </div>
     </div>
+
+    <!-- ─── Toast Container ─── -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ─── Firebase Import Map ─── -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js"
+            }
+        }
+    </script>
+
+    <!-- ─── Application ─── -->
+    <script type="module">
+        // ─── Imports (only used modules) ─────────────────────────
+        import { initializeApp } from 'firebase/app';
+        import {
+            getFirestore,
+            collection,
+            query,
+            orderBy,
+            getDocs,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            doc,
+            serverTimestamp,
+            getDoc
+        } from 'firebase/firestore';
+        import {
+            getDatabase,
+            ref,
+            set,
+            onValue,
+            get
+        } from 'firebase/database';
+
+        // ─── Firebase Config ──────────────────────────────────────
+        const firebaseConfig = {
+            apiKey: "AIzaSyB39dFGy-3rPx0FvALT0JP3UEhOLOuC-gA",
+            authDomain: "hbuc-notice.firebaseapp.com",
+            databaseURL: "https://hbuc-notice-default-rtdb.firebaseio.com",
+            projectId: "hbuc-notice",
+            storageBucket: "hbuc-notice.firebasestorage.app",
+            messagingSenderId: "183029872977",
+            appId: "1:183029872977:web:bdcc29f6098b54cfc33b70",
+            measurementId: "G-5L8MZ8MWCW"
+        };
+
+        // ─── Initialize Firebase (once) ──────────────────────────
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
+
+        // ─── DOM refs ─────────────────────────────────────────────
+        const form = document.getElementById('noticeForm');
+        const titleInput = document.getElementById('noticeTitle');
+        const descInput = document.getElementById('noticeDescription');
+        const dateInput = document.getElementById('noticeDate');
+        const imageInput = document.getElementById('noticeImageUrl');
+        const submitBtn = document.getElementById('submitBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const editDocId = document.getElementById('editDocId');
+        const formTitle = document.getElementById('formTitle');
+        const formSubtitle = document.getElementById('formSubtitle');
+        const noticesList = document.getElementById('noticesList');
+        const totalNoticesEl = document.getElementById('totalNotices');
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        const noticeCountLabel = document.getElementById('noticeCountLabel');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // ─── State ──────────────────────────────────────────────────
+        let isEditing = false;
+        let allNotices = [];
+
+        // ─── Toast system ──────────────────────────────────────────
+        function showToast(message, type = 'info', duration = 4000) {
+            const icons = {
+                success: '✅',
+                error: '❌',
+                info: 'ℹ️'
+            };
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+                <span>${message}</span>
+                <button class="toast-close" aria-label="Close">&times;</button>
+            `;
+            toastContainer.appendChild(toast);
+
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                toast.remove();
+            });
+
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+            }, duration);
+        }
+
+        // ─── Helper: format date ──────────────────────────────────
+        function formatDate(timestamp) {
+            if (!timestamp) return '—';
+            try {
+                let date;
+                if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
+                    date = new Date(timestamp.seconds * 1000);
+                } else if (timestamp instanceof Date) {
+                    date = timestamp;
+                } else {
+                    date = new Date(timestamp);
+                }
+                if (isNaN(date.getTime())) return '—';
+                return date.toLocaleDateString('bn-BD', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            } catch (_) {
+                return '—';
+            }
+        }
+
+        function formatDateShort(timestamp) {
+            if (!timestamp) return '—';
+            try {
+                let date;
+                if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
+                    date = new Date(timestamp.seconds * 1000);
+                } else if (timestamp instanceof Date) {
+                    date = timestamp;
+                } else {
+                    date = new Date(timestamp);
+                }
+                if (isNaN(date.getTime())) return '—';
+                return date.toLocaleString('bn-BD', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (_) {
+                return '—';
+            }
+        }
+
+        function getTodayDate() {
+            const today = new Date();
+            const y = today.getFullYear();
+            const m = String(today.getMonth() + 1).padStart(2, '0');
+            const d = String(today.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        // ─── Set today's date as default ──────────────────────────
+        dateInput.value = getTodayDate();
+
+        // ─── Render notices ──────────────────────────────────────
+        function renderNotices(notices) {
+            allNotices = notices || [];
+            noticesList.innerHTML = '';
+
+            if (!notices || notices.length === 0) {
+                noticesList.innerHTML = `
+                    <div class="empty-state">
+                        <span>📭</span>
+                        <p style="font-size:1rem;">No notices found. Create your first notice above!</p>
+                    </div>
+                `;
+                totalNoticesEl.textContent = '0';
+                noticeCountLabel.textContent = '0 items';
+                return;
+            }
+
+            totalNoticesEl.textContent = notices.length;
+            noticeCountLabel.textContent = `${notices.length} items`;
+
+            for (const notice of notices) {
+                const card = document.createElement('div');
+                card.className = 'notice-item';
+
+                // Image or placeholder
+                if (notice.imageUrl && notice.imageUrl.trim() !== '') {
+                    const img = document.createElement('img');
+                    img.className = 'item-img';
+                    img.src = notice.imageUrl;
+                    img.alt = notice.title || 'Notice';
+                    img.loading = 'lazy';
+                    img.onerror = function() {
+                        // If image fails to load, show placeholder
+                        this.style.display = 'none';
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'item-img-placeholder';
+                        placeholder.textContent = '🖼️';
+                        this.parentNode.insertBefore(placeholder, this);
+                    };
+                    card.appendChild(img);
+                } else {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'item-img-placeholder';
+                    placeholder.textContent = '📄';
+                    card.appendChild(placeholder);
+                }
+
+                const body = document.createElement('div');
+                body.className = 'item-body';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'item-title';
+                titleEl.textContent = notice.title || 'Untitled';
+                body.appendChild(titleEl);
+
+                const dateEl = document.createElement('span');
+                dateEl.className = 'item-date';
+                dateEl.textContent = notice.date || formatDate(notice.createdAt) || 'No date';
+                body.appendChild(dateEl);
+
+                const descEl = document.createElement('div');
+                descEl.className = 'item-desc';
+                descEl.textContent = notice.description || '';
+                body.appendChild(descEl);
+
+                const actions = document.createElement('div');
+                actions.className = 'item-actions';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-warning btn-sm';
+                editBtn.textContent = '✎ Edit';
+                editBtn.addEventListener('click', () => {
+                    loadNoticeForEdit(notice.id);
+                });
+                actions.appendChild(editBtn);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger btn-sm';
+                deleteBtn.textContent = '🗑 Delete';
+                deleteBtn.addEventListener('click', () => {
+                    confirmDelete(notice.id, notice.title);
+                });
+                actions.appendChild(deleteBtn);
+
+                body.appendChild(actions);
+                card.appendChild(body);
+                noticesList.appendChild(card);
+            }
+        }
+
+        // ─── Load notices from Firestore ─────────────────────────
+        async function loadNotices() {
+            try {
+                const noticesRef = collection(db, 'notices');
+                const q = query(noticesRef, orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+
+                const results = [];
+                snapshot.forEach(doc => {
+                    results.push({ id: doc.id, ...doc.data() });
+                });
+
+                renderNotices(results);
+                return results;
+            } catch (error) {
+                console.error('❌ Failed to load notices:', error);
+                showToast('Failed to load notices. Please refresh.', 'error');
+                noticesList.innerHTML = `
+                    <div class="empty-state">
+                        <span>⚠️</span>
+                        <p style="font-size:1rem;color:#ef4444;">Error loading notices. Check console for details.</p>
+                    </div>
+                `;
+                throw error;
+            }
+        }
+
+        // ─── Update Realtime Database trigger ────────────────────
+        async function updateRealtimeTrigger(changeType, newTotal) {
+            try {
+                const statusRef = ref(rtdb, 'noticeStatus');
+                const now = new Date().toISOString();
+
+                await set(statusRef, {
+                    noticeStatus: changeType,
+                    lastUpdated: now,
+                    totalNotice: newTotal,
+                    timestamp: Date.now()
+                });
+            } catch (error) {
+                console.error('❌ Failed to update Realtime Database trigger:', error);
+            }
+        }
+
+        // ─── Update stats UI ──────────────────────────────────────
+        function updateStats(total, lastUpdated) {
+            totalNoticesEl.textContent = total || allNotices.length || 0;
+            if (lastUpdated) {
+                const d = new Date(lastUpdated);
+                lastUpdatedEl.textContent = d.toLocaleString('bn-BD', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                lastUpdatedEl.textContent = '—';
+            }
+        }
+
+        // ─── Listen to Realtime Database changes ─────────────────
+        function setupRealtimeListener() {
+            try {
+                const statusRef = ref(rtdb, 'noticeStatus');
+                onValue(statusRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const total = data.totalNotice ?? allNotices.length;
+                        if (data.lastUpdated) {
+                            updateStats(total, data.lastUpdated);
+                        } else {
+                            updateStats(total, null);
+                        }
+                        loadNotices().catch(err => {
+                            console.error('❌ Reload after RTDB change failed:', err);
+                        });
+                    }
+                }, (error) => {
+                    console.error('❌ Realtime Database listener error:', error);
+                });
+            } catch (error) {
+                console.error('❌ Failed to set up Realtime Database listener:', error);
+            }
+        }
+
+        // ─── Load notice for edit ─────────────────────────────────
+        async function loadNoticeForEdit(docId) {
+            try {
+                const docRef = doc(db, 'notices', docId);
+                const docSnap = await getDoc(docRef);
+
+                if (!docSnap.exists()) {
+                    showToast('Notice not found.', 'error');
+                    return;
+                }
+
+                const data = docSnap.data();
+                titleInput.value = data.title || '';
+                descInput.value = data.description || '';
+                dateInput.value = data.date || getTodayDate();
+                imageInput.value = data.imageUrl || '';
+                editDocId.value = docId;
+
+                isEditing = true;
+                submitBtn.innerHTML = '🔄 Update Notice';
+                formTitle.innerHTML = '✏️ Edit Notice';
+                formSubtitle.textContent = 'update the fields below';
+                cancelEditBtn.style.display = 'inline-flex';
+
+                document.getElementById('formSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                showToast('Now editing: ' + (data.title || 'Untitled'), 'info');
+
+            } catch (error) {
+                console.error('❌ Failed to load notice for edit:', error);
+                showToast('Error loading notice for editing.', 'error');
+            }
+        }
+
+        // ─── Cancel edit ──────────────────────────────────────────
+        function cancelEdit() {
+            resetForm();
+            isEditing = false;
+            editDocId.value = '';
+            submitBtn.innerHTML = '➕ Add Notice';
+            formTitle.innerHTML = '✏️ Add New Notice';
+            formSubtitle.textContent = 'fill all fields';
+            cancelEditBtn.style.display = 'none';
+            showToast('Edit cancelled', 'info', 2000);
+        }
+
+        // ─── Reset form ────────────────────────────────────────────
+        function resetForm() {
+            form.reset();
+            dateInput.value = getTodayDate();
+            editDocId.value = '';
+            isEditing = false;
+            submitBtn.innerHTML = '➕ Add Notice';
+            formTitle.innerHTML = '✏️ Add New Notice';
+            formSubtitle.textContent = 'fill all fields';
+            cancelEditBtn.style.display = 'none';
+            document.querySelectorAll('.form-group input, .form-group textarea').forEach(el => {
+                el.style.borderColor = '';
+            });
+        }
+
+        // ─── Confirm delete ────────────────────────────────────────
+        function confirmDelete(docId, title) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.id = 'deleteModal';
+
+            const box = document.createElement('div');
+            box.className = 'modal-box';
+            box.innerHTML = `
+                <h3>🗑 Confirm Delete</h3>
+                <p>Are you sure you want to delete <strong>"${title || 'this notice'}"</strong>?<br />This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button class="btn" id="modalCancelBtn" style="background:rgba(203,213,225,0.5);color:#334155;">Cancel</button>
+                    <button class="btn btn-danger" id="modalConfirmBtn">Yes, Delete</button>
+                </div>
+            `;
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+
+            const cancelBtn = box.querySelector('#modalCancelBtn');
+            const confirmBtn = box.querySelector('#modalConfirmBtn');
+
+            cancelBtn.addEventListener('click', () => {
+                overlay.remove();
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                overlay.remove();
+                await deleteNotice(docId);
+            });
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        // ─── Delete notice ─────────────────────────────────────────
+        async function deleteNotice(docId) {
+            try {
+                const docRef = doc(db, 'notices', docId);
+                await deleteDoc(docRef);
+
+                const newTotal = Math.max(0, allNotices.length - 1);
+                await updateRealtimeTrigger('delete', newTotal);
+
+                showToast('🗑 Notice deleted successfully!', 'success');
+            } catch (error) {
+                console.error('❌ Delete failed:', error);
+                showToast('Failed to delete notice: ' + error.message, 'error');
+            }
+        }
+
+        // ─── Form submit handler ──────────────────────────────────
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // ── validation ──
+            const title = titleInput.value.trim();
+            const desc = descInput.value.trim();
+            const date = dateInput.value.trim();
+            const imageUrl = imageInput.value.trim();
+
+            if (!title) {
+                showToast('Please enter a notice title.', 'error');
+                titleInput.focus();
+                return;
+            }
+            if (!desc) {
+                showToast('Please enter a description.', 'error');
+                descInput.focus();
+                return;
+            }
+            if (!date) {
+                showToast('Please select a date.', 'error');
+                dateInput.focus();
+                return;
+            }
+
+            // ── Image URL is now optional ──
+            // If provided, validate it's a proper URL
+            if (imageUrl) {
+                try {
+                    new URL(imageUrl);
+                } catch (_) {
+                    showToast('Please enter a valid image URL, or leave it blank.', 'error');
+                    imageInput.focus();
+                    return;
+                }
+            }
+
+            const docId = editDocId.value;
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+
+                if (isEditing && docId) {
+                    // ── Update ──
+                    const docRef = doc(db, 'notices', docId);
+                    const updateData = {
+                        title,
+                        description: desc,
+                        date,
+                        updatedAt: serverTimestamp()
+                    };
+                    // Only include imageUrl if it's provided
+                    if (imageUrl) {
+                        updateData.imageUrl = imageUrl;
+                    } else {
+                        // If imageUrl is cleared, remove the field or set to empty
+                        updateData.imageUrl = '';
+                    }
+
+                    await updateDoc(docRef, updateData);
+
+                    await updateRealtimeTrigger('edit', allNotices.length);
+
+                    resetForm();
+                    showToast('✅ Notice updated successfully!', 'success');
+
+                } else {
+                    // ── Add ──
+                    const noticesRef = collection(db, 'notices');
+                    const newNoticeData = {
+                        title,
+                        description: desc,
+                        date,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    };
+                    // Only include imageUrl if provided
+                    if (imageUrl) {
+                        newNoticeData.imageUrl = imageUrl;
+                    }
+
+                    await addDoc(noticesRef, newNoticeData);
+
+                    const newTotal = allNotices.length + 1;
+                    await updateRealtimeTrigger('add', newTotal);
+
+                    resetForm();
+                    showToast('✅ Notice added successfully!', 'success');
+                }
+
+            } catch (error) {
+                console.error('❌ Submit failed:', error);
+                showToast('Operation failed: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = isEditing ? '🔄 Update Notice' : '➕ Add Notice';
+            }
+        });
+
+        // ─── Reset / cancel ───────────────────────────────────────
+        resetBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (isEditing) {
+                if (confirm('You are currently editing. Cancel edit and clear form?')) {
+                    cancelEdit();
+                }
+            } else {
+                resetForm();
+                showToast('Form cleared', 'info', 1500);
+            }
+        });
+
+        cancelEditBtn.addEventListener('click', cancelEdit);
+
+        // ─── Init ──────────────────────────────────────────────────
+        async function init() {
+            try {
+                await loadNotices();
+                setupRealtimeListener();
+
+                try {
+                    const statusRef = ref(rtdb, 'noticeStatus');
+                    const snapshot = await get(statusRef);
+                    const data = snapshot.val();
+                    if (data && data.lastUpdated) {
+                        updateStats(data.totalNotice || allNotices.length, data.lastUpdated);
+                    } else {
+                        updateStats(allNotices.length, null);
+                    }
+                } catch (_) {
+                    updateStats(allNotices.length, null);
+                }
+
+                console.log('✅ Admin Panel initialised successfully.');
+            } catch (error) {
+                console.error('❌ Initialisation error:', error);
+                showToast('Error initialising admin panel. Check console.', 'error');
+            }
+        }
+
+        init();
+    </script>
 
 </body>
 </html>

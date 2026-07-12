@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · Subjects</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ── RESET & BASE ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.12), transparent 40%),
+                radial-gradient(circle at 80% 30%, rgba(249, 115, 22, 0.10), transparent 45%),
+                linear-gradient(135deg, #fefcfb, #f1f5f9);
+            display: flex;
+            justify-content: center;
+        }
+
+        .admin-wrapper {
+            max-width: 1400px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ── HEADER ── */
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            padding: 1.2rem 2rem;
+            border-radius: 32px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(20, 184, 166, 0.15);
+        }
+
+        .admin-header h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-header h1 i {
+            color: #f97316;
+        }
+
+        .admin-header .actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-header .actions .live-badge {
+            background: rgba(20, 184, 166, 0.15);
+            color: #14b8a6;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(20, 184, 166, 0.25);
+        }
+
+        .admin-header .actions .live-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #14b8a6;
+            animation: pulse-dot 1.8s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+        }
+
+        .admin-header .actions .back-link {
+            color: #0f172a;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .admin-header .actions .back-link:hover {
+            background: rgba(0, 0, 0, 0.09);
+        }
+
+        .admin-header .actions .badge-count {
+            background: rgba(249, 115, 22, 0.12);
+            color: #f97316;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── TOAST ── */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 360px;
+            width: 100%;
+        }
+
+        .toast {
+            background: #0f172a;
+            color: #fff;
+            padding: 0.9rem 1.4rem;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.20);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.35s ease;
+            border-left: 5px solid #14b8a6;
+            backdrop-filter: blur(8px);
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.success {
+            border-left-color: #22c55e;
+        }
+
+        .toast i {
+            font-size: 1.2rem;
+            color: #14b8a6;
+        }
+
+        .toast.error i {
+            color: #ef4444;
+        }
+
+        .toast.success i {
+            color: #22c55e;
+        }
+
+        .toast .toast-close {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.10);
+            border: none;
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .toast .toast-close:hover {
+            background: rgba(255, 255, 255, 0.20);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(60px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ── FORM CARD ── */
+        .form-card {
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 2rem 2rem 1.8rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(20, 184, 166, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-card .form-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-card .form-title i {
+            color: #14b8a6;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem 1.8rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.7rem 1rem;
+            border: 1.5px solid rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.70);
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+            background: #fff;
+        }
+
+        .form-group .hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.7rem 2rem;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #14b8a6;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #0d9488;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.30);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.06);
+            color: #0f172a;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.10);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.30);
+        }
+
+        .btn-warning {
+            background: #f97316;
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.30);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* ── TABLE ── */
+        .table-wrap {
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 1.5rem 0 0.5rem;
+            border: 1px solid rgba(20, 184, 166, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .table-wrap .table-header {
+            padding: 0 1.8rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .table-wrap .table-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-wrap .table-header h2 span {
+            background: rgba(20, 184, 166, 0.12);
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: #14b8a6;
+        }
+
+        .table-wrap .table-header .refresh-btn {
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: #0f172a;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .table-wrap .table-header .refresh-btn:hover {
+            background: rgba(0, 0, 0, 0.09);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            padding: 0 0.2rem 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: rgba(241, 245, 249, 0.60);
+            backdrop-filter: blur(4px);
+            border-bottom: 2px solid rgba(20, 184, 166, 0.10);
+        }
+
+        th {
+            text-align: left;
+            padding: 0.9rem 1.2rem;
+            font-weight: 700;
+            color: #334155;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 0.9rem 1.2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+            vertical-align: middle;
+            color: #0f172a;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(20, 184, 166, 0.03);
+        }
+
+        .td-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #e3f2f1;
+        }
+
+        .td-img-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(20, 184, 166, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #14b8a6;
+            font-size: 1.3rem;
+        }
+
+        .td-views {
+            font-weight: 700;
+            color: #f97316;
+            background: rgba(249, 115, 22, 0.08);
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+        }
+
+        .td-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .td-actions .btn {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.7rem;
+        }
+
+        .empty-row td {
+            padding: 3rem 1.2rem;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .empty-row td i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            opacity: 0.3;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 820px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+                padding: 1.2rem 1.2rem;
+            }
+
+            .admin-header .actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .table-wrap .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            td,
+            th {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem 0.8rem;
+            }
+
+            .form-card {
+                padding: 1.2rem;
+            }
+
+            .table-wrap {
+                border-radius: 20px;
+                padding: 0.8rem 0 0.2rem;
+            }
+
+            .table-wrap .table-header {
+                padding: 0 1rem 0.8rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+
+        <!-- ─── HEADER ─── -->
+        <header class="admin-header">
+            <h1><i class="fas fa-user-shield"></i> Admin Panel</h1>
+            <div class="actions">
+                <span class="live-badge">
+                    <span class="dot"></span> LIVE
+                </span>
+                <span class="badge-count">
+                    <i class="fas fa-database"></i>
+                    <span id="totalSubjectsBadge">0</span> subjects
+                </span>
+                
+            </div>
+        </header>
+
+        <!-- ─── TOAST CONTAINER ─── -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- ─── FORM ─── -->
+        <section class="form-card" id="formCard">
+            <div class="form-title">
+                <i class="fas fa-plus-circle"></i>
+                <span id="formTitle">Add New Subject</span>
+            </div>
+
+            <form id="subjectForm" class="form-grid">
+                <!-- hidden id for edit mode -->
+                <input type="hidden" id="editId" value="" />
+
+                <div class="form-group">
+                    <label for="subjectName">Subject Name <span style="color:#ef4444;">*</span></label>
+                    <input type="text" id="subjectName" placeholder="e.g. Financial Accounting" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="subjectCode">Code / Year</label>
+                    <input type="text" id="subjectCode" placeholder="e.g. 1st year" />
+                </div>
+
+                <div class="form-group">
+                    <label for="subjectIcon">Icon <span style="color:#94a3b8;font-weight:400;">(FontAwesome)</span></label>
+                    <input type="text" id="subjectIcon" placeholder="fa-calculator" value="fa-book" />
+                    <div class="hint">e.g. fa-coins, fa-landmark, fa-chart-line</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subjectImg">Image URL</label>
+                    <input type="text" id="subjectImg" placeholder="https://example.com/image.jpg" />
+                    <div class="hint">Leave empty for fallback icon</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subjectPage">Page Link <span style="color:#ef4444;">*</span></label>
+                    <input type="text" id="subjectPage" placeholder="e.g. finance.html" required />
+                    <div class="hint">Relative or absolute URL</div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="formSubmitBtn">
+                        <i class="fas fa-save"></i> <span id="submitBtnText">Add Subject</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="formCancelBtn" style="display:none;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- ─── TABLE ─── -->
+        <section class="table-wrap">
+            <div class="table-header">
+                <h2>
+                    <i class="fas fa-list" style="color:#14b8a6;"></i> All Subjects
+                    <span id="countBadge">0</span>
+                </h2>
+                <button class="refresh-btn" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:60px;">Image</th>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Page</th>
+                            <th style="width:80px;">Views</th>
+                            <th style="width:150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectsTableBody">
+                        <!-- rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ════════════════════════════════════════════════════ -->
+    <!--  FIREBASE MODULE  (ESM)                            -->
+    <!-- ════════════════════════════════════════════════════ -->
+    <script type="module">
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 1. IMPORTS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            onSnapshot,
+            doc,
+            setDoc,
+            deleteDoc,
+            getDocs,
+            query,
+            limit,
+            orderBy,
+            updateDoc,
+            serverTimestamp,
+            writeBatch
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+        import {
+            getDatabase,
+            ref,
+            onValue,
+            set,
+            get,
+            child
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 2. FIREBASE CONFIG
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const firebaseConfig = {
+            apiKey: "AIzaSyC24LVqirCNOAFOZIvzl-6Cq9LSpw8tHKY",
+            authDomain: "hbuc-subject.firebaseapp.com",
+            projectId: "hbuc-subject",
+            storageBucket: "hbuc-subject.firebasestorage.app",
+            messagingSenderId: "142076909039",
+            appId: "1:142076909039:web:86971841d6af70ad51121a",
+            measurementId: "G-7M8CNPPBY7"
+        };
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 3. INIT
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const app = initializeApp(firebaseConfig);
+        const firestore = getFirestore(app);
+        const rtdb = getDatabase(app);
+
+        const subjectsCollection = collection(firestore, "subjects");
+
+        // DOM refs
+        const form = document.getElementById("subjectForm");
+        const editIdInput = document.getElementById("editId");
+        const nameInput = document.getElementById("subjectName");
+        const codeInput = document.getElementById("subjectCode");
+        const iconInput = document.getElementById("subjectIcon");
+        const imgInput = document.getElementById("subjectImg");
+        const pageInput = document.getElementById("subjectPage");
+        const submitBtn = document.getElementById("formSubmitBtn");
+        const submitBtnText = document.getElementById("submitBtnText");
+        const cancelBtn = document.getElementById("formCancelBtn");
+        const formTitle = document.getElementById("formTitle");
+        const tableBody = document.getElementById("subjectsTableBody");
+        const countBadge = document.getElementById("countBadge");
+        const totalSubjectsBadge = document.getElementById("totalSubjectsBadge");
+        const toastContainer = document.getElementById("toastContainer");
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 4. TOAST SYSTEM
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function showToast(message, type = "success", duration = 3200) {
+            const icons = {
+                success: "fa-check-circle",
+                error: "fa-exclamation-circle",
+                info: "fa-info-circle"
+            };
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+            <i class="fas ${icons[type] || icons.info}"></i>
+            <span>${message}</span>
+            <button class="toast-close"><i class="fas fa-times"></i></button>
+          `;
+            toastContainer.appendChild(toast);
+
+            const close = () => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateX(40px)";
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            toast.querySelector(".toast-close").addEventListener("click", close);
+            setTimeout(close, duration);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 5. HELPERS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function slugify(text) {
+            return text
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-|-$/g, "");
+        }
+
+        function resetForm() {
+            form.reset();
+            editIdInput.value = "";
+            submitBtnText.textContent = "Add Subject";
+            formTitle.textContent = "Add New Subject";
+            cancelBtn.style.display = "none";
+            nameInput.focus();
+            // set default icon
+            if (!iconInput.value) iconInput.value = "fa-book";
+        }
+
+        function fillFormForEdit(data, docId) {
+            editIdInput.value = docId;
+            nameInput.value = data.name || "";
+            codeInput.value = data.code || "";
+            iconInput.value = data.icon || "fa-book";
+            imgInput.value = data.img || "";
+            pageInput.value = data.page || "";
+            submitBtnText.textContent = "Update Subject";
+            formTitle.textContent = "Edit Subject";
+            cancelBtn.style.display = "inline-flex";
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 6. CRUD OPERATIONS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        // ——— CREATE / UPDATE ———
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const name = nameInput.value.trim();
+            const code = codeInput.value.trim();
+            const icon = iconInput.value.trim() || "fa-book";
+            const img = imgInput.value.trim() || "";
+            const page = pageInput.value.trim();
+            const editId = editIdInput.value.trim();
+
+            if (!name) {
+                showToast("Subject name is required.", "error");
+                return;
+            }
+            if (!page) {
+                showToast("Page link is required.", "error");
+                return;
+            }
+
+            const docId = editId || slugify(name) + "-" + Date.now().toString().slice(-6);
+
+            const data = {
+                name,
+                code,
+                icon,
+                img,
+                page,
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (editId) {
+                    // UPDATE
+                    const docRef = doc(subjectsCollection, editId);
+                    await updateDoc(docRef, data);
+                    showToast(`✅ "${name}" updated successfully.`, "success");
+                } else {
+                    // CREATE
+                    await setDoc(doc(subjectsCollection, docId), {
+                        ...data,
+                        createdAt: serverTimestamp()
+                    });
+                    showToast(`✅ "${name}" added successfully.`, "success");
+                }
+                resetForm();
+            } catch (err) {
+                console.error("Save error:", err);
+                showToast(`❌ Error: ${err.message}`, "error");
+            }
+        });
+
+        // ——— CANCEL EDIT ———
+        cancelBtn.addEventListener("click", resetForm);
+
+        // ——— DELETE ———
+        async function deleteSubject(docId, name) {
+            if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+            try {
+                await deleteDoc(doc(subjectsCollection, docId));
+                // Also remove RTDB views entry (optional)
+                const viewsRef = ref(rtdb, `views/${docId}`);
+                await set(viewsRef, null).catch(() => {});
+                showToast(`🗑️ "${name}" deleted.`, "info");
+            } catch (err) {
+                console.error("Delete error:", err);
+                showToast(`❌ Error: ${err.message}`, "error");
+            }
+        }
+
+        // ——— EDIT (load data into form) ———
+        function editSubject(docId, data) {
+            fillFormForEdit(data, docId);
+            // scroll to form
+            document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 7. RENDER TABLE (from Firestore snapshot)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // We'll store a map of docId -> viewCount from RTDB
+        const viewCounts = new Map();
+
+        function renderTable(snapshot) {
+            const docs = snapshot.docs;
+            const count = docs.length;
+            countBadge.textContent = count;
+            totalSubjectsBadge.textContent = count;
+
+            if (count === 0) {
+                tableBody.innerHTML = `
+              <tr class="empty-row">
+                <td colspan="6">
+                  <i class="fas fa-inbox"></i>
+                  No subjects yet. Add one above!
+                </td>
+              </tr>
+            `;
+                return;
+            }
+
+            let html = "";
+            for (const docSnap of docs) {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                const name = data.name || "Untitled";
+                const code = data.code || "";
+                const icon = data.icon || "fa-book";
+                const img = data.img || "";
+                const page = data.page || "#";
+                const views = viewCounts.get(id) || 0;
+
+                // image
+                let imgHtml = "";
+                if (img) {
+                    imgHtml =
+                        `<img src="${img}" alt="${name}" class="td-img" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\'td-img-placeholder\\'><i class=\\'fas ${icon}\\'></i></div>'" />`;
+                } else {
+                    imgHtml = `<div class="td-img-placeholder"><i class="fas ${icon}"></i></div>`;
+                }
+
+                html += `
+              <tr>
+                <td>${imgHtml}</td>
+                <td><strong>${name}</strong></td>
+                <td>${code}</td>
+                <td><code style="font-size:0.75rem;background:rgba(0,0,0,0.04);padding:0.1rem 0.6rem;border-radius:12px;">${page}</code></td>
+                <td><span class="td-views"><i class="fas fa-eye"></i> ${views}</span></td>
+                <td>
+                  <div class="td-actions">
+                    <button class="btn btn-warning btn-sm" data-action="edit" data-id="${id}">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" data-action="delete" data-id="${id}" data-name="${name}">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+            }
+
+            tableBody.innerHTML = html;
+
+            // ── attach event listeners to action buttons ──
+            tableBody.querySelectorAll("[data-action='edit']").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = btn.dataset.id;
+                    const docSnap = docs.find((d) => d.id === id);
+                    if (docSnap) {
+                        editSubject(id, docSnap.data());
+                    } else {
+                        showToast("Subject not found.", "error");
+                    }
+                });
+            });
+
+            tableBody.querySelectorAll("[data-action='delete']").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const id = btn.dataset.id;
+                    const name = btn.dataset.name || "this subject";
+                    deleteSubject(id, name);
+                });
+            });
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 8. SYNC VIEWS FROM REALTIME DB
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function listenViews() {
+            const viewsRef = ref(rtdb, "views");
+            onValue(viewsRef, (snapshot) => {
+                const data = snapshot.val() || {};
+                viewCounts.clear();
+                for (const [key, val] of Object.entries(data)) {
+                    viewCounts.set(key, typeof val === "number" ? val : 0);
+                }
+                // Re-render table with updated view counts
+                // We need the current snapshot – we'll trigger a re-render via a separate mechanism
+                // Instead, we'll store the last snapshot and re-render.
+                if (lastSnapshot) {
+                    renderTable(lastSnapshot);
+                }
+            }, (error) => {
+                // silent
+            });
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 9. SEED FIRESTORE IF EMPTY
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const DEFAULT_SUBJECTS = [
+            { name: "History of Bangladesh (see notes)", icon: "fa-landmark", code: "1st year", img: "",
+            page: "history.html" },
+            { name: "Business Communication (see notes)", icon: "fa-landmark", code: "1st year", img: "",
+            page: "c-b.html" },
+            { name: "Finance (see notes)", icon: "fa-coins", code: "1st year", img: "fi.jpg", page: "finance.html" },
+            { name: "Business Intro (see notes)", icon: "fa-briefcase", code: "1st year", img: "https://i.ibb.co.com/20tcxSXm/Whats-App-Image-2026-07-04-at-7-35-20-PM-1.jpg",
+                page: "i-b.html" },
+            { name: "Accounting (see notes)", icon: "fa-calculator", code: "1st year", img: "acc.jpg", page: "acc.html" },
+            { name: "Business Math (see notes)", icon: "fa-square-root-variable", code: "1st year", img: "math.jpg",
+                page: "math.html" },
+            { name: "Microeconomics (see notes)", icon: "fa-chart-line", code: "1st year", img: "rco.jpg",
+                page: "mic-eco.html" },
+            { name: "ICT Lab (see notes)", icon: "fa-desktop", code: "1st year", img: "L-i.jpg", page: "lab-ict.html" },
+            { name: "ICT (see notes)", icon: "fa-microchip", code: "1st year", img: "ict.jpg", page: "ict.html" },
+        ];
+
+        async function seedIfEmpty() {
+            try {
+                const q = query(subjectsCollection, limit(1));
+                const snap = await getDocs(q);
+                if (!snap.empty) return;
+
+                console.log("🌱 Seeding Firestore with default subjects...");
+                const batch = writeBatch(firestore);
+                for (const sub of DEFAULT_SUBJECTS) {
+                    const id = slugify(sub.name) + "-" + Date.now().toString().slice(-4);
+                    const ref = doc(subjectsCollection, id);
+                    batch.set(ref, {
+                        ...sub,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                }
+                await batch.commit();
+                console.log("✅ Seeded", DEFAULT_SUBJECTS.length, "subjects.");
+                showToast(`📦 ${DEFAULT_SUBJECTS.length} default subjects seeded.`, "info", 4000);
+            } catch (err) {
+                console.warn("Seed skipped:", err.message);
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // 10. START
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        let lastSnapshot = null;
+
+        async function init() {
+            // Seed
+            await seedIfEmpty();
+
+            // Listen to Firestore
+            onSnapshot(subjectsCollection, (snapshot) => {
+                lastSnapshot = snapshot;
+                renderTable(snapshot);
+            }, (error) => {
+                console.error("Firestore listener error:", error);
+                showToast(`🔥 Firestore error: ${error.message}`, "error");
+            });
+
+            // Listen to Realtime DB views
+            listenViews();
+
+            // Refresh button
+            document.getElementById("refreshBtn").addEventListener("click", () => {
+                if (lastSnapshot) {
+                    renderTable(lastSnapshot);
+                    showToast("🔄 Refreshed", "info", 1200);
+                }
+            });
+
+            // Reset form on Escape / etc is implicit
+            console.log("🚀 Admin panel ready.");
+        }
+
+        init();
+    </script>
+
+</body>
+</html>
