@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Jamon · Mobile Admin</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        /* ───────────── RESET & BASE ───────────── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #f1f4fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            position: relative;
+            background: #e8ecf5;
+        }
+
+        /* ───────────── PHONE FRAME ───────────── */
+        .phone-frame {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 820px;
+            background: #f1f4fb;
+            border-radius: 36px;
+            box-shadow:
+                0 40px 80px rgba(0, 0, 0, 0.12),
+                0 0 0 8px rgba(255, 255, 255, 0.50),
+                0 0 0 10px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 460px) {
+            .phone-frame {
+                max-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+                max-width: 100%;
+            }
+        }
+
+        /* ───────────── STATUS BAR ───────────── */
+        .status-bar {
+            padding: 12px 24px 6px 24px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #1e293b;
+            background: transparent;
+            flex-shrink: 0;
+            letter-spacing: 0.3px;
+        }
+        .status-bar .time {
+            font-weight: 700;
+        }
+        .status-bar .icons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .status-bar .icons i {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .status-bar .battery {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-bar .battery .level {
+            width: 18px;
+            height: 9px;
+            border: 1.5px solid #475569;
+            border-radius: 3px;
+            padding: 1px;
+            position: relative;
+        }
+        .status-bar .battery .level::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 2px;
+            width: 3px;
+            height: 5px;
+            background: #475569;
+            border-radius: 0 2px 2px 0;
+        }
+        .status-bar .battery .level .fill {
+            height: 100%;
+            width: 72%;
+            background: #22c55e;
+            border-radius: 1px;
+        }
+
+        /* ───────────── APP HEADER ───────────── */
+        .app-header {
+            padding: 8px 20px 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: transparent;
+        }
+
+        .app-header .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .app-header .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+            flex-shrink: 0;
+        }
+        .app-header .greeting {
+            display: flex;
+            flex-direction: column;
+        }
+        .app-header .greeting .hello {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .app-header .greeting .name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+        .app-header .greeting .name span {
+            background: linear-gradient(135deg, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .app-header .right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .app-header .right .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.60);
+            backdrop-filter: blur(8px);
+            color: #475569;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .app-header .right .icon-btn:active {
+            transform: scale(0.92);
+        }
+        .app-header .right .icon-btn .dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: 2px solid #fff;
+        }
+        .app-header .right .icon-btn:hover {
+            background: #fff;
+            color: #6366f1;
+        }
+
+        /* ───────────── MAIN SCROLL CONTENT ───────────── */
+        .scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 16px 16px;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+        .scroll-content::-webkit-scrollbar {
+            width: 3px;
+        }
+        .scroll-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* ───────────── DATE BADGE ───────────── */
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 0 2px;
+        }
+        .date-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.60);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .date-badge i {
+            color: #6366f1;
+        }
+
+        /* ───────────── STATS GRID ───────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(12px);
+            padding: 16px 16px 18px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.70);
+            transition: 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:active {
+            transform: scale(0.97);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 20px 20px 0 0;
+        }
+        .stat-card:nth-child(1)::before {
+            background: linear-gradient(90deg, #6366f1, #a78bfa);
+        }
+        .stat-card:nth-child(2)::before {
+            background: linear-gradient(90deg, #ec4899, #f472b6);
+        }
+        .stat-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #14b8a6, #5eead4);
+        }
+        .stat-card:nth-child(4)::before {
+            background: linear-gradient(90deg, #f59e0b, #fcd34d);
+        }
+
+        .stat-card .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .stat-card .stat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .stat-card:nth-child(1) .stat-icon {
+            background: rgba(99, 102, 241, 0.10);
+            color: #6366f1;
+        }
+        .stat-card:nth-child(2) .stat-icon {
+            background: rgba(236, 72, 153, 0.10);
+            color: #ec4899;
+        }
+        .stat-card:nth-child(3) .stat-icon {
+            background: rgba(20, 184, 166, 0.10);
+            color: #14b8a6;
+        }
+        .stat-card:nth-child(4) .stat-icon {
+            background: rgba(245, 158, 11, 0.10);
+            color: #f59e0b;
+        }
+
+        .stat-card .stat-change {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 60px;
+            background: rgba(52, 211, 153, 0.12);
+            color: #059669;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .stat-card:nth-child(2) .stat-change {
+            background: rgba(251, 146, 60, 0.12);
+            color: #d97706;
+        }
+        .stat-card:nth-child(3) .stat-change {
+            background: rgba(99, 102, 241, 0.10);
+            color: #6366f1;
+        }
+        .stat-card:nth-child(4) .stat-change {
+            background: rgba(236, 72, 153, 0.10);
+            color: #db2777;
+        }
+
+        .stat-card .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            margin-top: 6px;
+        }
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ───────────── SECTION TITLE ───────────── */
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0 12px 0;
+        }
+        .section-title h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title h3 i {
+            color: #6366f1;
+        }
+        .section-title a {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6366f1;
+            text-decoration: none;
+            padding: 4px 12px;
+            border-radius: 60px;
+            background: rgba(99, 102, 241, 0.06);
+            transition: 0.3s;
+        }
+        .section-title a:active {
+            transform: scale(0.95);
+        }
+
+        /* ───────────── ACTIVITY LIST ───────────── */
+        .activity-list {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 4px 16px 4px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.60);
+            margin-bottom: 16px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(203, 213, 225, 0.20);
+            align-items: center;
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-item:active {
+            opacity: 0.6;
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+        .activity-item:nth-child(1) .activity-avatar {
+            background: rgba(99, 102, 241, 0.08);
+            color: #6366f1;
+        }
+        .activity-item:nth-child(2) .activity-avatar {
+            background: rgba(236, 72, 153, 0.08);
+            color: #ec4899;
+        }
+        .activity-item:nth-child(3) .activity-avatar {
+            background: rgba(245, 158, 11, 0.08);
+            color: #f59e0b;
+        }
+        .activity-item:nth-child(4) .activity-avatar {
+            background: rgba(20, 184, 166, 0.08);
+            color: #14b8a6;
+        }
+
+        .activity-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .activity-content p {
+            font-size: 0.85rem;
+            color: #334155;
+            line-height: 1.3;
+        }
+        .activity-content p strong {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .activity-time {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .activity-time i {
+            font-size: 0.4rem;
+            color: #34d399;
+        }
+
+        /* ───────────── QUICK ACTIONS ───────────── */
+        .quick-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .quick-btn {
+            background: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(203, 213, 225, 0.20);
+            border-radius: 18px;
+            padding: 14px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #334155;
+            font-weight: 600;
+            font-size: 0.7rem;
+            transition: 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .quick-btn:active {
+            transform: scale(0.94);
+            background: #fff;
+        }
+        .quick-btn i {
+            font-size: 1.4rem;
+            transition: 0.3s;
+        }
+        .quick-btn:nth-child(1) i {
+            color: #6366f1;
+        }
+        .quick-btn:nth-child(2) i {
+            color: #ec4899;
+        }
+        .quick-btn:nth-child(3) i {
+            color: #14b8a6;
+        }
+        .quick-btn:nth-child(4) i {
+            color: #f59e0b;
+        }
+
+        /* ───────────── TIP CARD ───────────── */
+        .tip-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(236, 72, 153, 0.03));
+            border: 1px solid rgba(99, 102, 241, 0.06);
+            border-radius: 18px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+        .tip-card i {
+            color: #6366f1;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .tip-card span {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .tip-card strong {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* ───────────── BOTTOM NAV ───────────── */
+        .bottom-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.60);
+            padding: 6px 0 10px 0;
+            flex-shrink: 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02);
+            border-radius: 0 0 36px 36px;
+        }
+        @media (max-width: 460px) {
+            .bottom-nav {
+                border-radius: 0;
+            }
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #94a3b8;
+            transition: 0.3s;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 12px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+        .nav-item i {
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .nav-item.active {
+            color: #6366f1;
+        }
+        .nav-item.active i {
+            transform: translateY(-2px);
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #6366f1, #a78bfa);
+        }
+        .nav-item:active {
+            transform: scale(0.92);
+        }
+        .nav-item .badge {
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.5rem;
+            font-weight: 700;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 255, 255, 0.80);
+        }
+        .nav-item:nth-child(2) .badge {
+            background: #ec4899;
+        }
+
+        /* ───────────── BOTTOM SAFE AREA ───────────── */
+        .bottom-safe {
+            height: 4px;
+            flex-shrink: 0;
+        }
+
+        /* ───────────── RESPONSIVE TWEAKS ───────────── */
+        @media (max-width: 460px) {
+            .phone-frame {
+                border-radius: 0;
+                max-height: 100vh;
+            }
+            .status-bar {
+                padding: 10px 16px 4px 16px;
+                font-size: 0.65rem;
+            }
+            .app-header {
+                padding: 4px 16px 12px 16px;
+            }
+            .app-header .greeting .name {
+                font-size: 1rem;
+            }
+            .app-header .avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 0.8rem;
+            }
+            .scroll-content {
+                padding: 0 12px 12px 12px;
+            }
+            .stats-grid {
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 14px 14px 16px 14px;
+                border-radius: 18px;
+            }
+            .stat-card .stat-number {
+                font-size: 1.5rem;
+            }
+            .stat-card .stat-icon {
+                width: 34px;
+                height: 34px;
+                font-size: 1rem;
+            }
+            .quick-btn {
+                padding: 12px 6px;
+                font-size: 0.65rem;
+                border-radius: 16px;
+            }
+            .quick-btn i {
+                font-size: 1.2rem;
+            }
+            .activity-list {
+                padding: 0 12px;
+            }
+            .activity-item {
+                padding: 12px 0;
+            }
+            .activity-content p {
+                font-size: 0.8rem;
+            }
+            .bottom-nav {
+                padding: 4px 0 8px 0;
+            }
+            .nav-item {
+                font-size: 0.5rem;
+                padding: 2px 8px;
+            }
+            .nav-item i {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .stats-grid {
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 10px 10px 12px 10px;
+                border-radius: 16px;
+            }
+            .stat-card .stat-number {
+                font-size: 1.2rem;
+            }
+            .stat-card .stat-label {
+                font-size: 0.6rem;
+            }
+            .stat-card .stat-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.85rem;
+                border-radius: 10px;
+            }
+            .quick-grid {
+                gap: 8px;
+            }
+            .quick-btn {
+                padding: 10px 4px;
+                font-size: 0.6rem;
+                border-radius: 14px;
+            }
+            .quick-btn i {
+                font-size: 1rem;
+            }
+            .app-header .greeting .name {
+                font-size: 0.9rem;
+            }
+            .app-header .right .icon-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ───────────── SCROLLBAR ───────────── */
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        a {
+            text-decoration: none;
+            color: #363a3f;
+
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+
+        <!-- ═══ STATUS BAR ═══ -->
+        <div class="status-bar">
+            <span class="time" id="liveTime">9:41</span>
+            <div class="icons">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+                <div class="battery">
+                    <div class="level"><div class="fill"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ APP HEADER ═══ -->
+        <header class="app-header">
+            <div class="left">
+                <div class="avatar">AD</div>
+                <div class="greeting">
+                    <span class="hello" id="greetingTime">Good Morning</span>
+                    <span class="name">Admin <span>👋</span></span>
+                </div>
+            </div>
+            <div class="right">
+                <button class="icon-btn" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="icon-btn" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="dot"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ═══ SCROLLABLE CONTENT ═══ -->
+        <div class="scroll-content">
+
+            <!-- Date — LIVE -->
+            <div class="date-row">
+                <div class="date-badge" id="liveDateBadge">
+                    <i class="far fa-calendar-alt"></i> <span id="liveDateText">Loading…</span>
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <span style="font-size:0.6rem; color:#94a3b8; font-weight:500;">📌</span>
+                    <span style="font-size:0.6rem; color:#94a3b8; font-weight:500;" id="weekNumber">Week --</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="top">
+                        <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                        <span class="stat-change"><i class="fas fa-arrow-up"></i> 12%</span>
+                    </div>
+                    <div class="stat-number">19</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="top">
+                        <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <span class="stat-change"><i class="fas fa-arrow-up"></i> 4%</span>
+                    </div>
+                    <div class="stat-number">7</div>
+                    <div class="stat-label">Teachers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="top">
+                        <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                        <span class="stat-change"><i class="fas fa-arrow-up"></i> +2</span>
+                    </div>
+                    <div class="stat-number">9</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-card">
+                    <div class="top">
+                        <div class="stat-icon"><i class="fas fa-bullhorn"></i></div>
+                        <span class="stat-change"><i class="fas fa-clock"></i> 3</span>
+                    </div>
+                    <div class="stat-number">7</div>
+                    <div class="stat-label">Notices</div>
+                </div>
+            </section>
+
+            <!-- Recent Activity -->
+            <div class="section-title">
+                <h3><i class="fas fa-bolt"></i> Recent Activity</h3>
+                <a href="#">View all</a>
+            </div>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-avatar"><i class="fas fa-user-graduate"></i></div>
+                    <div class="activity-content">
+                        <p><strong>Sarah Kim</strong> enrolled in Mathematics.</p>
+                        <div class="activity-time"><i class="fas fa-circle"></i> 2 min ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-avatar"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div class="activity-content">
+                        <p><strong>Prof. Rivera</strong> posted a new assignment.</p>
+                        <div class="activity-time"><i class="fas fa-circle" style="color:#f472b6;"></i> 18 min ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-avatar"><i class="fas fa-bullhorn"></i></div>
+                    <div class="activity-content">
+                        <p><strong>New Notice:</strong> Exam schedule updated.</p>
+                        <div class="activity-time"><i class="fas fa-circle" style="color:#fbbf24;"></i> 1 hour ago</div>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-avatar"><i class="fas fa-book-open"></i></div>
+                    <div class="activity-content">
+                        <p><strong>Physics</strong> class added to Timetable.</p>
+                        <div class="activity-time"><i class="fas fa-circle" style="color:#5eead4;"></i> 3 hours ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section-title">
+                <h3><i class="fas fa-rocket" style="color:#f59e0b;"></i> Quick Actions</h3>
+                <a href="#">Manage</a>
+            </div>
+            <div class="quick-grid">
+                <a href="students-admin.html">
+                    <div class="quick-btn"><i class="fas fa-user-plus"></i> Add Student</div>
+                </a>
+                <a href="teacher-addmin.html">
+                    <div class="quick-btn"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</div>
+                </a>
+                <a href="subject-root.html">
+                    <div class="quick-btn"><i class="fas fa-book"></i> Subject</div>
+                </a>
+                <a href="notice-admin.html">
+                    <div class="quick-btn"><i class="fas fa-bullhorn"></i> Post Notice</div>
+                </a>
+            </div>
+
+            <!-- Tip -->
+            <div class="tip-card">
+                <i class="fas fa-info-circle"></i>
+                <span><strong>Tip:</strong> You have 2 pending notice approvals.</span>
+            </div>
+
+            <!-- spacer -->
+            <div style="height:12px;"></div>
+
+        </div>
+
+        <!-- ═══ BOTTOM NAV ═══ -->
+        <nav class="bottom-nav">
+            <button class="nav-item active">
+                <i class="fas fa-compass"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-item">
+                <i class="fas fa-user-graduate"></i>
+                <span><a href="students-admin.html">Students</a></span>
+                <span class="badge">19</span>
+            </button>
+            <button class="nav-item">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span><a href="teacher-addmin.html">Teachers</a></span>
+            </button>
+            <button class="nav-item">
+                <i class="fas fa-book-open"></i>
+                <span><a href="subject-root.html">Subjects</a></span>
+            </button>
+            <button class="nav-item">
+                <i class="fas fa-bullhorn"></i>
+                <span><a href="notice-admin.html">Notices</a></span>
+                <span class="badge">3</span>
+            </button>
+        </nav>
+
+        <!-- bottom safe area (iOS style) -->
+        <div class="bottom-safe"></div>
+
+    </div>
+
+    <!-- ═══════════════ LIVE DATE + TIME ═══════════════ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── DOM refs ───
+            const dateTextEl = document.getElementById('liveDateText');
+            const weekNumberEl = document.getElementById('weekNumber');
+            const timeEl = document.getElementById('liveTime');
+            const greetingEl = document.getElementById('greetingTime');
+
+            // ─── helpers ───
+            function pad(n) {
+                return String(n).padStart(2, '0');
+            }
+
+            function getWeekNumber(d) {
+                const temp = new Date(d.valueOf());
+                temp.setHours(0, 0, 0, 0);
+                temp.setDate(temp.getDate() + 3 - (temp.getDay() + 6) % 7);
+                const week1 = new Date(temp.getFullYear(), 0, 4);
+                return 1 + Math.round(((temp - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            }
+
+            function formatDate(date) {
+                const options = {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
+                return date.toLocaleDateString('en-US', options);
+            }
+
+            function getGreeting(hours) {
+                if (hours < 12) return 'Good Morning';
+                if (hours < 18) return 'Good Afternoon';
+                return 'Good Evening';
+            }
+
+            // ─── update everything ───
+            function updateClock() {
+                const now = new Date();
+
+                // --- Date ---
+                const dateStr = formatDate(now);
+                if (dateTextEl) dateTextEl.textContent = dateStr;
+
+                // --- Week ---
+                const week = getWeekNumber(now);
+                if (weekNumberEl) weekNumberEl.textContent = 'Week ' + week;
+
+                // --- Time (HH:MM) ---
+                const hh = pad(now.getHours());
+                const mm = pad(now.getMinutes());
+                if (timeEl) timeEl.textContent = hh + ':' + mm;
+
+                // --- Greeting ---
+                const greeting = getGreeting(now.getHours());
+                if (greetingEl) greetingEl.textContent = greeting;
+            }
+
+            // ─── run now, then every 30s (time updates; date changes at midnight) ───
+            updateClock();
+            setInterval(updateClock, 30000);
+
+            // ─── extra: force re-check on visibility change (user returns to tab) ───
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    updateClock();
+                }
+            });
+
+        })();
+    </script>
+
+</body>
+</html>

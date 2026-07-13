@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subject List</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Segoe UI, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a, #2563eb);
+        }
+
+        .page {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, .12);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, .2);
+            border-radius: 30px;
+            padding: 35px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .35);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #dbeafe;
+            font-size: 16px;
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+        }
+
+        .subject-item {
+            text-decoration: none;
+            background: rgba(255, 255, 255, .15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .2);
+            border-radius: 18px;
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: .35s;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .subject-item:hover {
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, .22);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, .25);
+        }
+
+        .featured {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: #fff;
+            padding: 30px;
+            border: none;
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 18px 40px rgba(249, 115, 22, .45);
+            text-decoration: none;
+            cursor: pointer;
+            transition: .35s;
+        }
+
+        .featured:hover {
+            transform: scale(1.02);
+        }
+
+        .featured .left {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .featured .icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 35px;
+        }
+
+        .featured h2 {
+            font-size: 28px;
+        }
+
+        .featured p {
+            margin-top: 6px;
+            opacity: .9;
+        }
+
+        .start {
+            background: #fff;
+            color: #f97316;
+            padding: 12px 22px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .footer small {
+            background: rgba(255, 255, 255, .15);
+            padding: 10px 20px;
+            border-radius: 30px;
+        }
+
+        @media(max-width:700px) {
+            .featured {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .featured .left {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+
+        <div class="header">
+            <h1>📚 Subject List</h1>
+            <p>Select your subject</p>
+        </div>
+
+        <div class="subject-grid">
+
+            <!-- Main Subject -->
+            <a href="subject-admin.html" class="featured">
+                <div class="left">
+                    <div class="icon">🧮</div>
+                    <div>
+                        <h2>Main Subject Panel</h2>
+                        <p>Featured Subject • Most Important</p>
+                    </div>
+                </div>
+
+                <div class="start">
+                    Open →
+                </div>
+            </a>
+
+            <!-- Subjects -->
+            <a href="history-admin.html" class="subject-item">
+                History of Bangladesh
+            </a>
+
+            <a href="business-communication.html" class="subject-item">
+                Business Communication
+            </a>
+
+            <a href="finance-admin.html" class="subject-item">
+                Principles of Finance
+            </a>
+
+            <a href="introduction-to-business.html" class="subject-item">
+                Introduction to Business
+            </a>
+
+            <a href="accounting-admin.html" class="subject-item">
+                Principles of Accounting
+            </a>
+
+            <a href="math-admin.html" class="subject-item">
+                Business Mathematics
+            </a>
+
+            <a href="micro-economics.html" class="subject-item">
+                Micro Economics
+            </a>
+
+            <a href="lab-ict.html" class="subject-item">
+                Lab: ICT
+            </a>
+
+            <a href="ict.html" class="subject-item">
+                ICT
+            </a>
+
+        </div>
+
+        <div class="footer">
+            <small>📌 Total Subjects : 9</small>
+        </div>
+
+    </div>
+
+</body>
+</html>

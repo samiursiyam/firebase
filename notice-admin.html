@@ -280,10 +280,49 @@
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
         }
 
+        /* ── clickable image link ── */
+        .notice-item .item-img-link {
+            display: block;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            line-height: 0;
+            background: #e2e8f0;
+        }
+        .notice-item .item-img-link:hover .item-img {
+            transform: scale(1.02);
+            transition: transform 0.35s ease;
+        }
+        .notice-item .item-img-link:active .item-img {
+            transform: scale(0.97);
+        }
+        .notice-item .item-img-link::after {
+            content: "🔍";
+            position: absolute;
+            bottom: 12px;
+            right: 14px;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            padding: 6px 10px;
+            border-radius: 30px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+            line-height: 1;
+        }
+        .notice-item .item-img-link:hover::after {
+            opacity: 1;
+        }
+
         .notice-item .item-img {
             width: 100%;
             height: 180px;
             object-fit: cover;
+            display: block;
+            transition: transform 0.35s ease;
             background: #e2e8f0;
         }
         .notice-item .item-img-placeholder {
@@ -297,6 +336,7 @@
             color: #94a3b8;
             flex-shrink: 0;
         }
+
         .notice-item .item-body {
             padding: 18px 20px 20px;
             flex: 1;
@@ -606,6 +646,12 @@
             .notice-item .item-img,
             .notice-item .item-img-placeholder {
                 height: 140px;
+            }
+            .notice-item .item-img-link::after {
+                font-size: 1rem;
+                padding: 4px 8px;
+                bottom: 8px;
+                right: 10px;
             }
             .notice-item .item-body {
                 padding: 14px 16px 16px;
@@ -995,29 +1041,46 @@
                 const card = document.createElement('div');
                 card.className = 'notice-item';
 
-                // Image or placeholder
-                if (notice.imageUrl && notice.imageUrl.trim() !== '') {
+                // ── Image (clickable) or placeholder ──
+                const imageUrl = notice.imageUrl && notice.imageUrl.trim() !== '' ? notice.imageUrl.trim() : null;
+
+                if (imageUrl) {
+                    // Clickable image: wrap in <a>
+                    const link = document.createElement('a');
+                    link.className = 'item-img-link';
+                    link.href = imageUrl;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.title = 'Click to view full image';
+
                     const img = document.createElement('img');
                     img.className = 'item-img';
-                    img.src = notice.imageUrl;
-                    img.alt = notice.title || 'Notice';
+                    img.src = imageUrl;
+                    img.alt = notice.title || 'Notice image';
                     img.loading = 'lazy';
+
+                    // On image error, show a placeholder inside the same link
                     img.onerror = function() {
-                        // If image fails to load, show placeholder
-                        this.style.display = 'none';
+                        // Remove the image and show placeholder
+                        this.remove();
                         const placeholder = document.createElement('div');
                         placeholder.className = 'item-img-placeholder';
                         placeholder.textContent = '🖼️';
-                        this.parentNode.insertBefore(placeholder, this);
+                        placeholder.style.cursor = 'pointer';
+                        link.appendChild(placeholder);
                     };
-                    card.appendChild(img);
+
+                    link.appendChild(img);
+                    card.appendChild(link);
                 } else {
+                    // No image URL: show non-clickable placeholder
                     const placeholder = document.createElement('div');
                     placeholder.className = 'item-img-placeholder';
                     placeholder.textContent = '📄';
                     card.appendChild(placeholder);
                 }
 
+                // ── Body ──
                 const body = document.createElement('div');
                 body.className = 'item-body';
 
