@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>HBUC · Admin Panel (Firebase Ready)</title>
+
+    <!-- Tailwind + Font Awesome -->
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet" />
+
+    <!-- Firebase SDKs (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border-radius: 24px;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.70);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .admin-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .admin-header .brand .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.25);
+        }
+
+        .admin-header .brand h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+        }
+
+        .admin-header .brand h1 span {
+            color: #16a34a;
+        }
+
+        .admin-header .brand .sub {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+            display: block;
+            margin-top: -2px;
+        }
+
+        .admin-header .actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .admin-header .actions .status-badge {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-save-all {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.25);
+        }
+
+        .btn-save-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.35);
+        }
+
+        .btn-save-all:active {
+            transform: scale(0.96);
+        }
+
+        .btn-save-all .spinner {
+            display: none;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-save-all.saving .spinner {
+            display: inline-block;
+        }
+
+        .btn-save-all.saving .label-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #0f172a;
+            color: #fff;
+            padding: 16px 28px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+            transform: translateY(120px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 4px solid #22c55e;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.success i {
+            color: #22c55e;
+        }
+
+        .toast.error i {
+            color: #ef4444;
+        }
+
+        .admin-card {
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.70);
+            border-radius: 20px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .admin-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+        }
+
+        .admin-card .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(203, 213, 225, 0.20);
+        }
+
+        .admin-card .card-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-card .card-header h3 i {
+            color: #16a34a;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            background: rgba(34, 197, 94, 0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-card .card-header .badge-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            background: #f1f4fb;
+            padding: 2px 14px;
+            border-radius: 40px;
+        }
+
+        .admin-card .field-group {
+            margin-bottom: 14px;
+        }
+
+        .admin-card .field-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .admin-card label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+            letter-spacing: 0.2px;
+        }
+
+        .admin-card input[type="text"],
+        .admin-card input[type="number"],
+        .admin-card input[type="url"],
+        .admin-card textarea,
+        .admin-card select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(203, 213, 225, 0.40);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            background: rgba(255, 255, 255, 0.60);
+            transition: all 0.3s;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .admin-card input:focus,
+        .admin-card textarea:focus,
+        .admin-card select:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.06);
+            background: #fff;
+        }
+
+        .admin-card textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .admin-card .helper {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .admin-card .preview-img {
+            width: 100%;
+            max-height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-top: 8px;
+            border: 1px solid rgba(203, 213, 225, 0.20);
+        }
+
+        .admin-card .inline-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .admin-card .inline-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dynamic-item {
+            background: rgba(241, 244, 251, 0.50);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(203, 213, 225, 0.15);
+            position: relative;
+        }
+
+        .dynamic-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .dynamic-item .item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .dynamic-item .item-header .badge-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dynamic-item .item-header .badge-select select {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(203, 213, 225, 0.30);
+            background: #fff;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .dynamic-item .item-header .badge-select .badge-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .dynamic-item .item-header .item-index {
+            font-weight: 700;
+            color: #16a34a;
+            font-size: 13px;
+            background: rgba(34, 197, 94, 0.08);
+            padding: 2px 10px;
+            border-radius: 40px;
+        }
+
+        .btn-delete-item {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+
+        .btn-delete-item:hover {
+            background: #fde8e8;
+            transform: scale(1.1);
+        }
+
+        .btn-add-item {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px dashed #16a34a;
+            color: #16a34a;
+            padding: 10px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-add-item:hover {
+            background: rgba(34, 197, 94, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-add-item:active {
+            transform: scale(0.96);
+        }
+
+        .gallery-type-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            background: #e2e8f0;
+            color: #475569;
+            display: inline-block;
+        }
+
+        .gallery-type-badge.image {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .gallery-type-badge.video {
+            background: #fce7f3;
+            color: #db2777;
+        }
+
+        .gallery-type-badge.routine {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+
+            .admin-header {
+                padding: 14px 16px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .admin-header .brand h1 {
+                font-size: 17px;
+            }
+
+            .admin-header .actions {
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .btn-save-all {
+                padding: 8px 20px;
+                font-size: 13px;
+                flex: 1;
+                justify-content: center;
+            }
+
+            .admin-card {
+                padding: 16px 14px;
+            }
+
+            .admin-card .inline-group {
+                grid-template-columns: 1fr;
+            }
+
+            .toast {
+                left: 20px;
+                right: 20px;
+                bottom: 20px;
+                padding: 14px 20px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .admin-header .actions .status-badge {
+                font-size: 10px;
+                padding: 4px 12px;
+            }
+
+            .admin-card .card-header h3 {
+                font-size: 13px;
+            }
+
+            .admin-card input,
+            .admin-card textarea,
+            .admin-card select {
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrap">
+
+        <!-- ═══ TOAST ═══ -->
+        <div id="toast" class="toast">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMsg">সংরক্ষিত হয়েছে!</span>
+        </div>
+
+        <!-- ═══ HEADER ═══ -->
+        <header class="admin-header">
+            <div class="brand">
+                <div class="logo">HB</div>
+                <div>
+                    <h1>HBUC <span>Admin</span></h1>
+                    <span class="sub"><i class="fas fa-fire mr-1 text-[10px]"></i>Firebase Ready</span>
+                </div>
+            </div>
+            <div class="actions">
+                <span class="status-badge" id="statusBadge">
+                    <i class="fas fa-circle text-[8px] text-[#22c55e]"></i> সংরক্ষিত
+                </span>
+                <button id="saveAllBtn" class="btn-save-all">
+                    <span class="label-text"><i class="fas fa-save mr-1.5"></i>সব সংরক্ষণ</span>
+                    <span class="spinner"><i class="fas fa-spinner"></i></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ═══ BANNER ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-flag"></i>ওয়েলকাম ব্যানার</h3>
+                <span class="badge-count">হোমপেজ</span>
+            </div>
+            <div class="inline-group">
+                <div class="field-group">
+                    <label>শিরোনাম <span class="optional">(উপশিরোনাম)</span></label>
+                    <input type="text" id="bannerSub" placeholder="Finance Department" />
+                </div>
+                <div class="field-group">
+                    <label>মূল শিরোনাম</label>
+                    <input type="text" id="bannerTitle" placeholder="Welcome to HBUC" />
+                </div>
+            </div>
+            <div class="field-group">
+                <label>বিবরণ</label>
+                <textarea id="bannerDesc" rows="2"></textarea>
+            </div>
+        </div>
+
+        <!-- ═══ STATS ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-simple"></i>পরিসংখ্যান</h3>
+                <span class="badge-count">কাউন্টার</span>
+            </div>
+            <div class="inline-group">
+                <div class="field-group">
+                    <label>শিক্ষার্থী সংখ্যা</label>
+                    <input type="number" id="statStudents" placeholder="২৫" />
+                </div>
+                <div class="field-group">
+                    <label>শিক্ষক সংখ্যা</label>
+                    <input type="number" id="statTeachers" placeholder="৮" />
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ SLIDER ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-images"></i>স্লাইডার</h3>
+                <span class="badge-count" id="sliderCount">০টি</span>
+            </div>
+            <div id="sliderContainer"></div>
+            <button class="btn-add-item" id="addSliderBtn"><i class="fas fa-plus-circle"></i> নতুন স্লাইড যোগ</button>
+        </div>
+
+        <!-- ═══ NOTICE ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-bullhorn"></i>নোটিশ</h3>
+                <span class="badge-count" id="noticeCount">০টি</span>
+            </div>
+            <div id="noticeContainer"></div>
+            <button class="btn-add-item" id="addNoticeBtn"><i class="fas fa-plus-circle"></i> নতুন নোটিশ যোগ</button>
+        </div>
+
+        <!-- ═══ GALLERY ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-photo-film"></i>গ্যালারি</h3>
+                <span class="badge-count" id="galleryCount">০টি</span>
+            </div>
+            <div id="galleryContainer"></div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+                <button class="btn-add-item" id="addGalleryImageBtn"><i class="fas fa-image"></i> ছবি যোগ</button>
+                <button class="btn-add-item" id="addGalleryVideoBtn"><i class="fas fa-video"></i> ভিডিও যোগ</button>
+                <button class="btn-add-item" id="addGalleryRoutineBtn"><i class="fas fa-calendar-alt"></i> রুটিন
+                    যোগ</button>
+            </div>
+        </div>
+
+        <!-- ═══ ABOUT ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i>আমাদের সম্পর্কে</h3>
+                <span class="badge-count">About</span>
+            </div>
+            <div class="field-group">
+                <label>শিরোনাম</label>
+                <input type="text" id="aboutTitle" />
+            </div>
+            <div class="field-group">
+                <label>প্যারাগ্রাফ ১</label>
+                <textarea id="aboutPara1" rows="2"></textarea>
+            </div>
+            <div class="field-group">
+                <label>প্যারাগ্রাফ ২</label>
+                <textarea id="aboutPara2" rows="2"></textarea>
+            </div>
+            <div class="field-group">
+                <label>প্যারাগ্রাফ ৩</label>
+                <textarea id="aboutPara3" rows="2"></textarea>
+            </div>
+            <div class="inline-group">
+                <div class="field-group"><label>ফিচার ১</label><input type="text" id="aboutFeature1" /></div>
+                <div class="field-group"><label>ফিচার ২</label><input type="text" id="aboutFeature2" /></div>
+                <div class="field-group"><label>ফিচার ৩</label><input type="text" id="aboutFeature3" /></div>
+                <div class="field-group"><label>ফিচার ৪</label><input type="text" id="aboutFeature4" /></div>
+            </div>
+            <div class="field-group">
+                <label>About ছবি (ইউআরএল)</label>
+                <input type="url" id="aboutImage" />
+                <img id="aboutImagePreview" class="preview-img" style="display:none;" alt="preview" />
+            </div>
+        </div>
+
+        <!-- ═══ FOOTER ═══ -->
+        <div class="admin-card">
+            <div class="card-header">
+                <h3><i class="fas fa-address-card"></i>ফুটার তথ্য</h3>
+                <span class="badge-count">যোগাযোগ</span>
+            </div>
+            <div class="inline-group">
+                <div class="field-group"><label>ঠিকানা</label><input type="text" id="footerAddress" /></div>
+                <div class="field-group"><label>ফোন</label><input type="text" id="footerPhone" /></div>
+                <div class="field-group"><label>ইমেইল</label><input type="text" id="footerEmail" /></div>
+                <div class="field-group"><label>কার্যকাল</label><input type="text" id="footerHours" /></div>
+            </div>
+            <div class="field-group">
+                <label>ট্যাগলাইন</label>
+                <input type="text" id="footerTagline" />
+            </div>
+            <div class="inline-group">
+                <div class="field-group"><label>Messenger</label><input type="url" id="footerFb" /></div>
+                <div class="field-group"><label>WhatsApp Main</label><input type="url" id="footerWpMain" /></div>
+                <div class="field-group"><label>WhatsApp History</label><input type="url" id="footerWpHistory" /></div>
+                <div class="field-group"><label>WhatsApp ICT</label><input type="url" id="footerWpIct" /></div>
+            </div>
+            <div class="field-group">
+                <label>কপিরাইট</label>
+                <input type="text" id="footerCopyright" />
+            </div>
+        </div>
+
+        <!-- ═══ ফুটার নেভ ═══ -->
+        <div
+            style="margin-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 0;border-top:1px solid rgba(203,213,225,0.20);">
+            <p style="font-size:13px;color:#94a3b8;">
+                <i class="fas fa-arrow-left mr-1.5"></i>
+                <a href="index.html" style="color:#16a34a;font-weight:600;text-decoration:none;">← মূল সাইটে ফিরে
+                    যান</a>
+            </p>
+            <p style="font-size:12px;color:#94a3b8;">
+                <i class="fas fa-sync-alt mr-1.5 text-[10px]"></i>
+                শেষ সংরক্ষণ: <span id="lastSaved">—</span>
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════
+    JAVASCRIPT – Firebase সংযোগের জন্য সম্পূর্ণ প্রস্তুত
+    ═══════════════════════════════════════════════════ -->
+    <script>
+        (function () {
+            'use strict';
+
+            // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+            const firebaseConfig = {
+                apiKey: "AIzaSyC8K7Sgo3xCSXnfY5S4m9UjlN22fRTIGC8",
+                authDomain: "hbuc-c0abd.firebaseapp.com",
+                projectId: "hbuc-c0abd",
+                storageBucket: "hbuc-c0abd.firebasestorage.app",
+                messagingSenderId: "681284055148",
+                appId: "1:681284055148:web:2d2acc3d7626918ac76849",
+                measurementId: "G-HT7QKTEY6D"
+            };
+
+            // ─── Firebase Initialize ───
+            let app, db, rtdb;
+
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                rtdb = firebase.database();
+                console.log('✅ Firebase initialized successfully.');
+            } catch (e) {
+                console.warn('⚠️ Firebase init failed. Using local storage only.', e);
+            }
+
+            // ─── DOM Refs ───
+            const $ = id => document.getElementById(id);
+            const toast = $('toast');
+            const toastMsg = $('toastMsg');
+            const saveBtn = $('saveAllBtn');
+            const lastSaved = $('lastSaved');
+            const statusBadge = $('statusBadge');
+
+            // ─── ডিফল্ট ডেটা ───
+            const defaultData = {
+                bannerSub: 'Finance Department',
+                bannerTitle: 'Welcome to HBUC',
+                bannerDesc: 'We are committed to quality education and building a better future.',
+                statStudents: '25',
+                statTeachers: '8',
+                sliders: [
+                    { url: 'https://hbuc.edu.bd/admin/uploads/nu-theme-1/website/section/66b352033738c2985.jpg' },
+                    { url: 'https://hbuc.edu.bd/admin/uploads/nu-theme-1/website/section/62d00dc3622f21802.jpg' },
+                    { url: 'https://hbuc.edu.bd/admin/uploads/nu-theme-1/website/section/62d00ef0934149645.jpg' }
+                ],
+                notices: [
+                    { badge: 'NEW', content: '"কিছু জানার থাকলে চ্যাটে কমেন্ট করে জানাতে পারো 😊"' },
+                    { badge: 'UPDATE', content: '"History assignment আগামী ১৬ তারিখের মধ্যে জমা দিতে হবে।"' },
+                    { badge: 'URGENT', content: '"History assignment-এর topic গুলো notice-এ দেওয়া আছে।"' }
+                ],
+                gallery: [
+                    { type: 'image', url: 'image/h1.jpeg' },
+                    { type: 'image', url: 'image/h2.jpeg' },
+                    { type: 'video', url: 'image/hv1.mp4' },
+                    { type: 'routine', url: 'https://i.ibb.co.com/Z6FX6Fdt/Whats-App-Image-2026-06-17-at-12-06-38-PM.jpg' }
+                ],
+                aboutTitle: 'আমাদের ওয়েবসাইট সম্পর্কে',
+                aboutPara1: 'আমাদের কলেজের সকল শিক্ষার্থী ও শিক্ষকদের জন্য একটি আধুনিক, তথ্যসমৃদ্ধ এবং সহজে ব্যবহারযোগ্য প্ল্যাটফর্ম তৈরির লক্ষ্য নিয়ে এই ওয়েবসাইটটি তৈরি করা হয়েছে।',
+                aboutPara2: 'শিক্ষার্থীদের সুবিধার কথা বিবেচনা করে এই প্ল্যাটফর্মে কলেজ জীবনের চার বছরের সকল বিষয়ভিত্তিক নোট, গুরুত্বপূর্ণ ক্লাস ম্যাটেরিয়াল, সাজেশন এবং প্রয়োজনীয় শিক্ষাসামগ্রী সংরক্ষণ ও আপলোড করা হবে।',
+                aboutPara3: 'নিয়মিত নতুন নোট, অ্যাসাইনমেন্ট, পরীক্ষার আপডেট, রুটিন, শিক্ষক ও শিক্ষার্থীদের তথ্য এবং কলেজের বিভিন্ন অনুষ্ঠানের তথ্য প্রকাশ করা হবে। আমাদের লক্ষ্য হলো শিক্ষার্থীদের পড়াশোনাকে আরও সহজ, দ্রুত এবং কার্যকর করে তোলা।',
+                aboutFeature1: 'Study Notes',
+                aboutFeature2: 'Exam Updates',
+                aboutFeature3: 'Assignments',
+                aboutFeature4: 'Support',
+                aboutImage: 'image/pic4.jpeg',
+                footerAddress: 'Mizan road, rampura, Dhaka-1000',
+                footerPhone: '+880 01621183068',
+                footerEmail: 'rsiyam548@gmail.com',
+                footerHours: 'Sat–Thu: 8AM – 6PM',
+                footerTagline: '"এখানে একাডেমি-সম্পর্কিত সকল গ্রুপের লিংক দেওয়া হয়েছে, যাতে সবাই সহজেই পড়াশোনার তথ্য, নোটিশ এবং গুরুত্বপূর্ণ আপডেট জানতে পারে।" 📚✨',
+                footerFb: 'https://m.me/j/AbbqkhQcpepfV0eT/',
+                footerWpMain: 'https://chat.whatsapp.com/E2dTp1AvVuhIb6KKTeGQbV',
+                footerWpHistory: 'https://chat.whatsapp.com/C8gqmXhhXmn5o1OumpEfEK',
+                footerWpIct: 'https://chat.whatsapp.com/Hx5gQqSlFKFLNhRPA4QXNP',
+                footerCopyright: '© 2026 <span class="text-gray-800 font-medium">HBUC</span> · Made by Samiur Rahman (Siyam)',
+            };
+
+            let data = {};
+
+            // ─── লোড ডেটা (প্রথমে লোকাল, তারপর Firebase) ───
+            function loadData() {
+                let localData = null;
+                try {
+                    const raw = localStorage.getItem('hbuc_admin_dynamic_data');
+                    if (raw) localData = JSON.parse(raw);
+                } catch (e) { }
+
+                if (localData) {
+                    for (const key in defaultData) {
+                        if (!(key in localData)) {
+                            localData[key] = JSON.parse(JSON.stringify(defaultData[key]));
+                        }
+                    }
+                    data = localData;
+                } else {
+                    data = JSON.parse(JSON.stringify(defaultData));
+                }
+
+                if (db) {
+                    db.collection('config').doc('adminData').get()
+                        .then(doc => {
+                            if (doc.exists) {
+                                const fireData = doc.data();
+                                for (const key in defaultData) {
+                                    if (fireData[key] !== undefined) {
+                                        data[key] = fireData[key];
+                                    }
+                                }
+                                localStorage.setItem('hbuc_admin_dynamic_data', JSON.stringify(data));
+                                renderAll();
+                                updateStatus('সংরক্ষিত (Firebase)');
+                                showToastMessage('✅ Firebase থেকে ডেটা লোড হয়েছে', 'success');
+                            } else {
+                                saveData(false);
+                            }
+                        })
+                        .catch(err => {
+                            console.warn('Firestore read error, using local data.', err);
+                            renderAll();
+                        });
+                } else {
+                    renderAll();
+                }
+            }
+
+            // ─── সংরক্ষণ (Firestore + Realtime + লোকাল) ───
+            function saveData(showToast = true) {
+                const staticFields = [
+                    'bannerSub', 'bannerTitle', 'bannerDesc',
+                    'statStudents', 'statTeachers',
+                    'aboutTitle', 'aboutPara1', 'aboutPara2', 'aboutPara3',
+                    'aboutFeature1', 'aboutFeature2', 'aboutFeature3', 'aboutFeature4',
+                    'aboutImage',
+                    'footerAddress', 'footerPhone', 'footerEmail', 'footerHours',
+                    'footerTagline', 'footerFb', 'footerWpMain', 'footerWpHistory', 'footerWpIct',
+                    'footerCopyright'
+                ];
+                staticFields.forEach(id => {
+                    const el = $(id);
+                    if (el) data[id] = el.value;
+                });
+
+                data.sliders = collectSliderData();
+                data.notices = collectNoticeData();
+                data.gallery = collectGalleryData();
+
+                try {
+                    localStorage.setItem('hbuc_admin_dynamic_data', JSON.stringify(data));
+                    localStorage.setItem('hbuc_admin_saved_at', String(Date.now()));
+                } catch (e) { }
+
+                const savePromises = [];
+
+                if (db) {
+                    const firestorePromise = db.collection('config').doc('adminData').set(data, { merge: true })
+                        .then(() => console.log('✅ Firestore updated'))
+                        .catch(err => console.warn('Firestore save error:', err));
+                    savePromises.push(firestorePromise);
+                }
+
+                if (rtdb) {
+                    const rtdbPromise = rtdb.ref('adminData').set(data)
+                        .then(() => console.log('✅ Realtime DB updated'))
+                        .catch(err => console.warn('Realtime DB save error:', err));
+                    savePromises.push(rtdbPromise);
+                }
+
+                if (savePromises.length === 0) {
+                    updateSavedTime();
+                    if (showToast) {
+                        showToastMessage('✅ লোকাল স্টোরেজে সংরক্ষিত হয়েছে', 'success');
+                    }
+                    statusBadge.innerHTML = '<i class="fas fa-circle text-[8px] text-[#22c55e]"></i> সংরক্ষিত';
+                    return true;
+                }
+
+                Promise.allSettled(savePromises).then(results => {
+                    const allOk = results.every(r => r.status === 'fulfilled');
+                    updateSavedTime();
+                    if (showToast) {
+                        if (allOk) {
+                            showToastMessage('✅ Firebase + লোকাল সেভ সম্পূর্ণ!', 'success');
+                            statusBadge.innerHTML = '<i class="fas fa-circle text-[8px] text-[#22c55e]"></i> সংরক্ষিত';
+                        } else {
+                            showToastMessage('⚠️ Firebase এ সমস্যা, কিন্তু লোকাল সেভ হয়েছে', 'error');
+                            statusBadge.innerHTML = '<i class="fas fa-circle text-[8px] text-[#ef4444]"></i> আংশিক';
+                        }
+                    }
+                });
+                return true;
+            }
+
+            // ─── হেল্পার: ডায়নামিক ডেটা কালেক্ট ───
+            function collectSliderData() {
+                const items = document.querySelectorAll('#sliderContainer .dynamic-item');
+                const arr = [];
+                items.forEach(item => {
+                    const urlInput = item.querySelector('input[type="url"]');
+                    if (urlInput) arr.push({ url: urlInput.value.trim() });
+                });
+                return arr;
+            }
+
+            function collectNoticeData() {
+                const items = document.querySelectorAll('#noticeContainer .dynamic-item');
+                const arr = [];
+                items.forEach(item => {
+                    const badgeSelect = item.querySelector('select');
+                    const contentTextarea = item.querySelector('textarea');
+                    if (badgeSelect && contentTextarea) {
+                        arr.push({ badge: badgeSelect.value, content: contentTextarea.value.trim() });
+                    }
+                });
+                return arr;
+            }
+
+            function collectGalleryData() {
+                const items = document.querySelectorAll('#galleryContainer .dynamic-item');
+                const arr = [];
+                items.forEach(item => {
+                    const typeSelect = item.querySelector('.gallery-type-select');
+                    const urlInput = item.querySelector('input[type="url"]');
+                    if (typeSelect && urlInput) {
+                        arr.push({ type: typeSelect.value, url: urlInput.value.trim() });
+                    }
+                });
+                return arr;
+            }
+
+            // ─── রেন্ডার ───
+            function renderAll() {
+                renderSliders();
+                renderNotices();
+                renderGallery();
+                updateCounts();
+
+                const staticFields = [
+                    'bannerSub', 'bannerTitle', 'bannerDesc',
+                    'statStudents', 'statTeachers',
+                    'aboutTitle', 'aboutPara1', 'aboutPara2', 'aboutPara3',
+                    'aboutFeature1', 'aboutFeature2', 'aboutFeature3', 'aboutFeature4',
+                    'aboutImage',
+                    'footerAddress', 'footerPhone', 'footerEmail', 'footerHours',
+                    'footerTagline', 'footerFb', 'footerWpMain', 'footerWpHistory', 'footerWpIct',
+                    'footerCopyright'
+                ];
+                staticFields.forEach(id => {
+                    const el = $(id);
+                    if (el && data[id] !== undefined) el.value = data[id];
+                });
+                updatePreview('aboutImage', 'aboutImagePreview');
+                updateSavedTime();
+            }
+
+            function renderSliders() {
+                const container = $('sliderContainer');
+                container.innerHTML = '';
+                data.sliders.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'dynamic-item';
+                    div.innerHTML = `
+                        <div class="item-header">
+                            <span class="item-index">#${index + 1}</span>
+                            <button class="btn-delete-item" data-index="${index}" data-type="slider"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="field-group" style="margin-bottom:0;">
+                            <input type="url" value="${escapeHtml(item.url)}" placeholder="https://example.com/slide.jpg" />
+                            <img class="preview-img" src="${escapeHtml(item.url)}" alt="preview" style="${item.url ? 'display:block;' : 'display:none;'}" />
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.querySelectorAll('.btn-delete-item').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const index = parseInt(this.dataset.index);
+                        data.sliders.splice(index, 1);
+                        renderAll();
+                        saveData(false);
+                    });
+                });
+                container.querySelectorAll('input[type="url"]').forEach(input => {
+                    input.addEventListener('input', function () {
+                        const preview = this.parentElement.querySelector('.preview-img');
+                        if (preview) {
+                            const url = this.value.trim();
+                            if (url) {
+                                preview.src = url;
+                                preview.style.display = 'block';
+                            } else { preview.style.display = 'none'; }
+                        }
+                        scheduleAutoSave();
+                    });
+                });
+            }
+
+            function renderNotices() {
+                const container = $('noticeContainer');
+                container.innerHTML = '';
+                data.notices.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'dynamic-item';
+                    div.innerHTML = `
+                        <div class="item-header">
+                            <div class="badge-select">
+                                <span class="badge-label">ব্যাজ</span>
+                                <select>
+                                    <option value="NEW" ${item.badge === 'NEW' ? 'selected' : ''}>NEW</option>
+                                    <option value="UPDATE" ${item.badge === 'UPDATE' ? 'selected' : ''}>UPDATE</option>
+                                    <option value="URGENT" ${item.badge === 'URGENT' ? 'selected' : ''}>URGENT</option>
+                                    <option value="INFO" ${item.badge === 'INFO' ? 'selected' : ''}>INFO</option>
+                                </select>
+                            </div>
+                            <button class="btn-delete-item" data-index="${index}" data-type="notice"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="field-group" style="margin-bottom:0;">
+                            <textarea rows="2">${escapeHtml(item.content)}</textarea>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.querySelectorAll('.btn-delete-item').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const index = parseInt(this.dataset.index);
+                        data.notices.splice(index, 1);
+                        renderAll();
+                        saveData(false);
+                    });
+                });
+                container.querySelectorAll('select, textarea').forEach(el => {
+                    el.addEventListener('change', scheduleAutoSave);
+                    el.addEventListener('input', scheduleAutoSave);
+                });
+            }
+
+            function renderGallery() {
+                const container = $('galleryContainer');
+                container.innerHTML = '';
+                data.gallery.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'dynamic-item';
+                    const typeLabel = { image: 'ছবি', video: 'ভিডিও', routine: 'রুটিন' }[item.type] || 'ছবি';
+                    const typeClass = { image: 'image', video: 'video', routine: 'routine' }[item.type] || 'image';
+                    div.innerHTML = `
+                        <div class="item-header">
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <span class="item-index">#${index + 1}</span>
+                                <span class="gallery-type-badge ${typeClass}">${typeLabel}</span>
+                                <select class="gallery-type-select" style="padding:4px 10px;border-radius:40px;font-size:11px;border:1px solid #e2e8f0;background:#fff;outline:none;font-family:'Inter',sans-serif;">
+                                    <option value="image" ${item.type === 'image' ? 'selected' : ''}>ছবি</option>
+                                    <option value="video" ${item.type === 'video' ? 'selected' : ''}>ভিডিও</option>
+                                    <option value="routine" ${item.type === 'routine' ? 'selected' : ''}>রুটিন</option>
+                                </select>
+                            </div>
+                            <button class="btn-delete-item" data-index="${index}" data-type="gallery"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <div class="field-group" style="margin-bottom:0;">
+                            <input type="url" value="${escapeHtml(item.url)}" placeholder="https://example.com/media.jpg" />
+                            ${item.type === 'video' ? `<video controls class="preview-img" style="max-height:120px;width:100%;border-radius:12px;margin-top:8px;background:#000;"><source src="${escapeHtml(item.url)}" type="video/mp4"></video>` : `<img class="preview-img" src="${escapeHtml(item.url)}" alt="preview" style="${item.url ? 'display:block;' : 'display:none;'}" />`}
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                container.querySelectorAll('.btn-delete-item').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const index = parseInt(this.dataset.index);
+                        data.gallery.splice(index, 1);
+                        renderAll();
+                        saveData(false);
+                    });
+                });
+                container.querySelectorAll('.gallery-type-select').forEach(sel => {
+                    sel.addEventListener('change', function () {
+                        const parent = this.closest('.dynamic-item');
+                        const idx = Array.from(parent.parentElement.children).indexOf(parent);
+                        data.gallery[idx].type = this.value;
+                        renderAll();
+                        saveData(false);
+                    });
+                });
+                container.querySelectorAll('input[type="url"]').forEach(input => {
+                    input.addEventListener('input', function () {
+                        const parent = this.closest('.dynamic-item');
+                        const idx = Array.from(parent.parentElement.children).indexOf(parent);
+                        data.gallery[idx].url = this.value.trim();
+                        const preview = parent.querySelector('.preview-img');
+                        if (preview) {
+                            const url = this.value.trim();
+                            if (url) {
+                                if (preview.tagName === 'VIDEO') {
+                                    preview.querySelector('source').src = url;
+                                    preview.load();
+                                } else {
+                                    preview.src = url;
+                                    preview.style.display = 'block';
+                                }
+                            } else {
+                                if (preview.tagName === 'VIDEO') {
+                                    preview.querySelector('source').src = '';
+                                    preview.load();
+                                } else { preview.style.display = 'none'; }
+                            }
+                        }
+                        scheduleAutoSave();
+                    });
+                });
+            }
+
+            function updateCounts() {
+                $('sliderCount').textContent = data.sliders.length + 'টি';
+                $('noticeCount').textContent = data.notices.length + 'টি';
+                $('galleryCount').textContent = data.gallery.length + 'টি';
+            }
+
+            function updatePreview(inputId, previewId) {
+                const input = $(inputId);
+                const preview = $(previewId);
+                if (input && preview) {
+                    const url = input.value.trim();
+                    if (url) {
+                        preview.src = url;
+                        preview.style.display = 'block';
+                    } else { preview.style.display = 'none'; }
+                }
+            }
+
+            function updateSavedTime() {
+                const saved = localStorage.getItem('hbuc_admin_saved_at');
+                if (saved) {
+                    const d = new Date(parseInt(saved));
+                    lastSaved.textContent = d.toLocaleString('bn-BD', { hour12: true });
+                }
+            }
+
+            function updateStatus(msg) {
+                statusBadge.innerHTML = `<i class="fas fa-circle text-[8px] text-[#22c55e]"></i> ${msg}`;
+            }
+
+            let autoSaveTimer = null;
+
+            function scheduleAutoSave() {
+                if (autoSaveTimer) clearTimeout(autoSaveTimer);
+                autoSaveTimer = setTimeout(() => saveData(false), 600);
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            // ─── টোস্ট ───
+            let toastTimer = null;
+
+            function showToastMessage(msg, type = 'success') {
+                toastMsg.textContent = msg;
+                toast.className = 'toast ' + type;
+                void toast.offsetWidth;
+                toast.classList.add('show');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+            }
+
+            // ─── ইভেন্ট লিসেনার ───
+            $('addSliderBtn').addEventListener('click', function () {
+                data.sliders.push({ url: '' });
+                renderAll();
+                saveData(false);
+            });
+            $('addNoticeBtn').addEventListener('click', function () {
+                data.notices.push({ badge: 'NEW', content: '' });
+                renderAll();
+                saveData(false);
+            });
+            $('addGalleryImageBtn').addEventListener('click', function () {
+                data.gallery.push({ type: 'image', url: '' });
+                renderAll();
+                saveData(false);
+            });
+            $('addGalleryVideoBtn').addEventListener('click', function () {
+                data.gallery.push({ type: 'video', url: '' });
+                renderAll();
+                saveData(false);
+            });
+            $('addGalleryRoutineBtn').addEventListener('click', function () {
+                data.gallery.push({ type: 'routine', url: '' });
+                renderAll();
+                saveData(false);
+            });
+
+            saveBtn.addEventListener('click', function () {
+                this.classList.add('saving');
+                statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin text-[10px]"></i> সংরক্ষণ হচ্ছে...';
+                setTimeout(() => {
+                    saveData(true);
+                    this.classList.remove('saving');
+                }, 300);
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveBtn.click();
+                }
+            });
+
+            document.querySelectorAll('.admin-card input, .admin-card textarea, .admin-card select').forEach(el => {
+                if (el.closest('#sliderContainer') || el.closest('#noticeContainer') || el.closest('#galleryContainer'))
+                    return;
+                el.addEventListener('input', scheduleAutoSave);
+                el.addEventListener('change', scheduleAutoSave);
+            });
+
+            // ─── START ───
+            loadData();
+            console.log('✅ HBUC Admin Panel – Firebase Ready.');
+
+        })();
+    </script>
+
+</body>
+
+</html>

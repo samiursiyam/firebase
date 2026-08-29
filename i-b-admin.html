@@ -141,8 +141,8 @@
             margin-bottom: 0.4rem;
         }
 
-        /* ── Image Card – click opens FULL‑SCREEN MODAL ── */
-        .img-card {
+        /* ── Image & Text Cards ── */
+        .img-card, .text-card {
             background: #07142f;
             border-radius: 1.25rem;
             overflow: hidden;
@@ -151,7 +151,7 @@
             position: relative;
             cursor: pointer;
         }
-        .img-card:hover {
+        .img-card:hover, .text-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
         }
@@ -174,6 +174,33 @@
         }
         .img-card:hover .img-wrapper img {
             transform: scale(1.08);
+        }
+
+        /* Text Card Style */
+        .text-card .text-wrapper {
+            height: 220px;
+            background: linear-gradient(135deg, #1a2d4e, #0f1f3f);
+            border-radius: 1.25rem 1.25rem 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .text-card .text-wrapper .text-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .text-card .text-wrapper .text-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            line-height: 1.4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .text-card:hover .text-wrapper .text-title {
+            text-decoration: underline;
         }
 
         .img-overlay {
@@ -329,7 +356,7 @@
 
         .modal-img-wrapper {
             flex: 1;
-            overflow: auto;
+            overflow: hidden;
             -webkit-overflow-scrolling: touch;
             display: flex;
             align-items: center;
@@ -338,6 +365,8 @@
             min-height: 0;
             position: relative;
             padding: 10px 0;
+            touch-action: none;
+            user-select: none;
         }
         .modal-img-wrapper.zoomed {
             cursor: zoom-out;
@@ -358,11 +387,35 @@
             -webkit-user-select: none;
             display: block;
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+            cursor: inherit;
         }
-        .modal-box .modal-img.zoomed {
-            max-width: none;
-            max-height: none;
-            cursor: zoom-out;
+
+        /* Text inside Modal */
+        .modal-text-content {
+            display: none;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 2.5rem;
+            background: #0f1f3f;
+            border-radius: 1.5rem;
+            color: #e2e8f0;
+            font-size: 1.2rem;
+            line-height: 1.9;
+            white-space: pre-wrap;
+            text-align: justify;
+            width: 95%;
+            margin: 0 auto;
+            border: 1px solid #1e293b;
+        }
+        .modal-text-content.active {
+            display: block;
+        }
+        .modal-text-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #4f46e5;
+            text-align: center;
         }
 
         .modal-box .modal-desc {
@@ -402,7 +455,8 @@
             margin-bottom: 0.3rem;
         }
         .admin-modal input,
-        .admin-modal textarea {
+        .admin-modal textarea,
+        .admin-modal select {
             width: 100%;
             padding: 0.6rem 1rem;
             border-radius: 0.75rem;
@@ -414,22 +468,38 @@
             transition: border 0.2s;
         }
         .admin-modal input:focus,
-        .admin-modal textarea:focus {
+        .admin-modal textarea:focus,
+        .admin-modal select:focus {
             border-color: #4f46e5;
         }
         .admin-modal .image-entry {
             display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: #07142f;
+            padding: 0.8rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.6rem;
+            border: 1px solid #1e293b;
+        }
+        .admin-modal .image-entry .entry-row {
+            display: flex;
             gap: 0.5rem;
             align-items: center;
-            background: #07142f;
-            padding: 0.5rem;
-            border-radius: 0.75rem;
-            margin-bottom: 0.4rem;
             flex-wrap: wrap;
         }
-        .admin-modal .image-entry input {
+        .admin-modal .image-entry .entry-row select {
+            width: auto;
+            min-width: 100px;
+        }
+        .admin-modal .image-entry .entry-row input {
             flex: 1;
             min-width: 100px;
+        }
+        .admin-modal .image-entry .entry-row textarea {
+            flex: 1;
+            min-height: 60px;
+            resize: vertical;
         }
         .admin-modal .image-entry .remove-img-btn {
             background: transparent;
@@ -438,6 +508,7 @@
             cursor: pointer;
             font-size: 1.2rem;
             padding: 0 0.3rem;
+            align-self: flex-start;
         }
         .admin-modal .add-img-btn {
             background: #1e293b;
@@ -593,7 +664,7 @@
                 font-size: 0.6rem;
                 padding: 0.2rem 0.6rem 0.4rem;
             }
-            .img-card .img-wrapper {
+            .img-card .img-wrapper, .text-card .text-wrapper {
                 height: 180px;
             }
             .modal-close-btn {
@@ -611,7 +682,7 @@
             .content {
                 padding: 1rem 0.75rem 2rem;
             }
-            .img-card .img-wrapper {
+            .img-card .img-wrapper, .text-card .text-wrapper {
                 height: 140px;
             }
             .modal-box {
@@ -838,10 +909,19 @@
     <div class="modal-overlay" id="imageModal">
         <div class="modal-box">
             <button class="modal-close-btn" id="modalCloseBtn" aria-label="Close">✕</button>
-            <div class="modal-img-wrapper" id="modalImgWrapper">
+            
+            <!-- Image Section -->
+            <div class="modal-img-wrapper" id="modalImgWrapper" style="display: flex;">
                 <img src="" alt="preview" class="modal-img" id="modalImg" />
-                <span class="zoom-hint">🔄 scroll / pinch to zoom</span>
+                <span class="zoom-hint">🔄 scroll / pinch to zoom · drag to pan</span>
             </div>
+
+            <!-- Text Section -->
+            <div class="modal-text-content" id="modalTextContent">
+                <h2 id="modalTextTitle"></h2>
+                <div id="modalTextBody"></div>
+            </div>
+
             <p class="modal-desc" id="modalDesc">🏛️ ..</p>
         </div>
     </div>
@@ -860,11 +940,11 @@
                     <input type="number" id="editChapterOrder" placeholder="1" />
                 </div>
                 <div class="form-group">
-                    <label>Images</label>
+                    <label>Media Items (Image or Text)</label>
                     <div id="editImagesContainer">
-                        <!-- dynamic image entries -->
+                        <!-- dynamic entries -->
                     </div>
-                    <button class="add-img-btn" id="addImageEntryBtn">+ Add Image</button>
+                    <button class="add-img-btn" id="addImageEntryBtn">+ Add Media Item</button>
                 </div>
             </div>
             <div class="modal-actions">
@@ -950,13 +1030,13 @@
 
             <div class="mt-6" id="imageSection">
                 <h2 class="text-xl font-bold text-cyan-400 mb-5 flex items-center gap-2">
-                    <span>🖼</span> Images
-                    <span class="text-sm font-normal text-slate-400">(click image to view full‑screen with zoom)</span>
+                    <span>🖼</span> Media
+                    <span class="text-sm font-normal text-slate-400">(click to view full‑screen)</span>
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="imageGrid">
-                    <!-- images injected by JS -->
+                    <!-- media injected by JS -->
                 </div>
-                <p class="text-xs text-slate-500 mt-3 italic">* click any image → full‑screen preview with smooth zoom</p>
+                <p class="text-xs text-slate-500 mt-3 italic">* click any image → full‑screen preview with smooth zoom & pan</p>
             </div>
 
             <div class="h-6"></div>
@@ -969,7 +1049,7 @@
     </div>
 
     <!-- ========================================================== -->
-    <!-- FIREBASE + ADMIN SCRIPT — UPDATED TO hbuc-i-b           -->
+    <!-- FIREBASE + ADMIN SCRIPT — hbuc-ib with full features        -->
     <!-- ========================================================== -->
     <script type="module">
         // ------------------------------------------------------------------
@@ -997,16 +1077,16 @@
         } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
         // ------------------------------------------------------------------
-        // 2. FIREBASE CONFIG — UPDATED TO hbuc-i-b
+        // 2. FIREBASE CONFIG — hbuc-ib
         // ------------------------------------------------------------------
         const firebaseConfig = {
-               apiKey: "AIzaSyDwCYsJcb8y0_Ovb_rqiHCPAfBGbOhhYcE",
-               authDomain: "hbuc-ib.firebaseapp.com",
-               projectId: "hbuc-ib",
-               storageBucket: "hbuc-ib.firebasestorage.app",
-                messagingSenderId: "867041790503",
+            apiKey: "AIzaSyDwCYsJcb8y0_Ovb_rqiHCPAfBGbOhhYcE",
+            authDomain: "hbuc-ib.firebaseapp.com",
+            projectId: "hbuc-ib",
+            storageBucket: "hbuc-ib.firebasestorage.app",
+            messagingSenderId: "867041790503",
             appId: "1:867041790503:web:077739cb992d0d74691c02",
-       measurementId: "G-KP7H4DG7NM"
+            measurementId: "G-KP7H4DG7NM"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -1069,21 +1149,68 @@
         }
 
         // ------------------------------------------------------------------
-        // 6. FULL‑SCREEN MODAL (zoom)
+        // 6. FULL‑SCREEN MODAL (ZOOM + PAN + TEXT)
         // ------------------------------------------------------------------
         const modal = document.getElementById('imageModal');
         const modalImg = document.getElementById('modalImg');
         const modalDesc = document.getElementById('modalDesc');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const modalWrapper = document.getElementById('modalImgWrapper');
+        const modalTextContent = document.getElementById('modalTextContent');
+        const modalTextTitle = document.getElementById('modalTextTitle');
+        const modalTextBody = document.getElementById('modalTextBody');
 
         let scale = 1;
         let isZoomed = false;
+        let panX = 0, panY = 0;
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let startPanX = 0, startPanY = 0;
+        let isTextMode = false;
 
-        function openModal(src, desc) {
+        function applyTransform() {
+            modalImg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            if (scale > 1) {
+                modalWrapper.style.cursor = isDragging ? 'grabbing' : 'grab';
+            } else {
+                modalWrapper.style.cursor = 'zoom-in';
+            }
+        }
+
+        function resetZoom() {
+            scale = 1;
+            panX = 0;
+            panY = 0;
+            isZoomed = false;
+            isDragging = false;
+            applyTransform();
+            modalImg.classList.remove('zoomed');
+            modalWrapper.classList.remove('zoomed');
+        }
+
+        function openImageModal(src, desc) {
+            isTextMode = false;
+            modalImgWrapper.style.display = 'flex';
+            modalTextContent.classList.remove('active');
+            modalDesc.style.display = 'block';
+            
             modalImg.src = src;
             modalImg.alt = desc;
             modalDesc.textContent = desc;
+            resetZoom();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openTextModal(title, content) {
+            isTextMode = true;
+            modalImgWrapper.style.display = 'none';
+            modalDesc.style.display = 'none';
+            
+            modalTextTitle.textContent = title;
+            modalTextBody.textContent = content;
+            modalTextContent.classList.add('active');
+            
             resetZoom();
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -1093,62 +1220,100 @@
             modal.classList.remove('active');
             document.body.style.overflow = '';
             resetZoom();
+            modalTextContent.classList.remove('active');
         }
 
-        function resetZoom() {
-            scale = 1;
-            isZoomed = false;
-            modalImg.style.transform = 'scale(1)';
-            modalImg.classList.remove('zoomed');
-            modalWrapper.classList.remove('zoomed');
-            modalWrapper.style.cursor = 'zoom-in';
-        }
-
+        // Mouse wheel zoom
         modalImg.addEventListener('wheel', function(e) {
             e.preventDefault();
             const delta = e.deltaY > 0 ? -0.08 : 0.08;
             scale = Math.min(Math.max(scale + delta, 0.5), 5);
-            modalImg.style.transform = `scale(${scale})`;
-            if (scale > 1.05) {
+            isZoomed = scale > 1.05;
+            if (isZoomed) {
                 modalImg.classList.add('zoomed');
                 modalWrapper.classList.add('zoomed');
-                modalWrapper.style.cursor = 'zoom-out';
-                isZoomed = true;
             } else {
                 modalImg.classList.remove('zoomed');
                 modalWrapper.classList.remove('zoomed');
-                modalWrapper.style.cursor = 'zoom-in';
-                isZoomed = false;
             }
+            applyTransform();
         }, { passive: false });
 
+        // Click to toggle zoom
         modalImg.addEventListener('click', function(e) {
             e.stopPropagation();
-            if (isZoomed) {
+            if (isZoomed && !isDragging) {
                 resetZoom();
-            } else {
+            } else if (!isZoomed) {
                 scale = 2.5;
-                modalImg.style.transform = `scale(${scale})`;
+                isZoomed = true;
                 modalImg.classList.add('zoomed');
                 modalWrapper.classList.add('zoomed');
-                modalWrapper.style.cursor = 'zoom-out';
-                isZoomed = true;
+                applyTransform();
             }
         });
 
+        // Double‑click to reset
         modalImg.addEventListener('dblclick', function(e) {
             e.preventDefault();
             resetZoom();
         });
 
-        modalCloseBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeModal();
+        // ── Drag to Pan (Mouse) ──
+        modalWrapper.addEventListener('mousedown', function(e) {
+            if (e.button !== 0 || !isZoomed) return;
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            startPanX = panX;
+            startPanY = panY;
+            applyTransform();
         });
 
+        document.addEventListener('mousemove', function(e) {
+            if (!isDragging || !isZoomed) return;
+            panX = startPanX + (e.clientX - dragStartX);
+            panY = startPanY + (e.clientY - dragStartY);
+            applyTransform();
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                applyTransform();
+            }
+        });
+
+        // ── Drag to Pan (Touch) ──
+        let touchStartX = 0, touchStartY = 0;
+        let touchStartPanX = 0, touchStartPanY = 0;
+        let isTouchDragging = false;
+
+        modalWrapper.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1 && isZoomed) {
+                isTouchDragging = true;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartPanX = panX;
+                touchStartPanY = panY;
+            }
+        }, { passive: true });
+
+        modalWrapper.addEventListener('touchmove', function(e) {
+            if (isTouchDragging && e.touches.length === 1 && isZoomed) {
+                e.preventDefault();
+                panX = touchStartPanX + (e.touches[0].clientX - touchStartX);
+                panY = touchStartPanY + (e.touches[0].clientY - touchStartY);
+                applyTransform();
+            }
+        }, { passive: false });
+
+        modalWrapper.addEventListener('touchend', function() {
+            isTouchDragging = false;
+            applyTransform();
+        });
+
+        // ── Pinch zoom for touch ──
         let initialPinchDistance = 0;
         let initialPinchScale = 1;
         modalImg.addEventListener('touchstart', function(e) {
@@ -1167,20 +1332,26 @@
                 const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
                 const delta = dist / initialPinchDistance;
                 scale = Math.min(Math.max(initialPinchScale * delta, 0.5), 5);
-                modalImg.style.transform = `scale(${scale})`;
-                if (scale > 1.05) {
+                isZoomed = scale > 1.05;
+                if (isZoomed) {
                     modalImg.classList.add('zoomed');
                     modalWrapper.classList.add('zoomed');
-                    modalWrapper.style.cursor = 'zoom-out';
-                    isZoomed = true;
                 } else {
                     modalImg.classList.remove('zoomed');
                     modalWrapper.classList.remove('zoomed');
-                    modalWrapper.style.cursor = 'zoom-in';
-                    isZoomed = false;
                 }
+                applyTransform();
             }
         }, { passive: false });
+
+        // Close buttons
+        modalCloseBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
 
         // ------------------------------------------------------------------
         // 7. TITLE MANAGEMENT
@@ -1350,66 +1521,101 @@
         }
 
         // ------------------------------------------------------------------
-        // 9. RENDER: IMAGES (click → full‑screen modal)
+        // 9. RENDER: IMAGES & TEXTS (Mixed Media)
         // ------------------------------------------------------------------
-        function renderImages(images) {
+        function renderImages(items) {
             imageGrid.innerHTML = '';
-            if (!images || images.length === 0) {
+            if (!items || items.length === 0) {
                 imageGrid.innerHTML =
-                    `<div class="col-span-full text-center text-slate-400 py-8">🖼️ No images for this chapter yet.</div>`;
+                    `<div class="col-span-full text-center text-slate-400 py-8">🖼️ No media for this chapter yet.</div>`;
                 return;
             }
-            images.forEach(imgData => {
-                const card = document.createElement('div');
-                card.className = 'img-card';
+            items.forEach(item => {
+                const isText = item.type === 'text';
 
-                // Click → open full‑screen modal
-                card.addEventListener('click', function(e) {
-                    if (e.target.closest('.zoom-btn')) return;
-                    openModal(imgData.src, imgData.desc || 'Image');
-                });
+                if (isText) {
+                    // ─── TEXT CARD ───
+                    const card = document.createElement('div');
+                    card.className = 'text-card';
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'text-wrapper';
+                    
+                    const iconSpan = document.createElement('div');
+                    iconSpan.className = 'text-icon';
+                    iconSpan.textContent = '📄';
+                    
+                    const titleSpan = document.createElement('div');
+                    titleSpan.className = 'text-title';
+                    titleSpan.textContent = item.title || 'Read more';
+                    
+                    wrapper.appendChild(iconSpan);
+                    wrapper.appendChild(titleSpan);
+                    card.appendChild(wrapper);
+                    
+                    // Click card → open text modal
+                    card.addEventListener('click', function(e) {
+                        openTextModal(item.title || 'Text', item.content || 'No content available.');
+                    });
+                    
+                    const label = document.createElement('div');
+                    label.className = 'img-label';
+                    const shortTitle = (item.title || '').length > 35 ? (item.title || '').slice(0, 35) + '…' : (item.title || 'Text');
+                    label.textContent = shortTitle;
+                    card.appendChild(label);
+                    
+                    imageGrid.appendChild(card);
+                } else {
+                    // ─── IMAGE CARD ───
+                    const card = document.createElement('div');
+                    card.className = 'img-card';
 
-                const wrapper = document.createElement('div');
-                wrapper.className = 'img-wrapper';
+                    card.addEventListener('click', function(e) {
+                        if (e.target.closest('.zoom-btn')) return;
+                        openImageModal(item.src, item.desc || 'Image');
+                    });
 
-                const img = document.createElement('img');
-                img.src = imgData.src;
-                img.alt = imgData.desc || 'i-b image';
-                img.loading = 'lazy';
-                img.onerror = function() {
-                    this.src =
-                        'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="180" viewBox="0 0 200 180"%3E%3Crect width="200" height="180" fill="%231a2d4e"/%3E%3Ctext x="100" y="90" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="16"%3E🖼%3C/text%3E%3C/svg%3E';
-                };
-                wrapper.appendChild(img);
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'img-wrapper';
 
-                const overlay = document.createElement('div');
-                overlay.className = 'img-overlay';
-                const labelSpan = document.createElement('span');
-                labelSpan.textContent = 'View Image';
-                overlay.appendChild(labelSpan);
-                wrapper.appendChild(overlay);
+                    const img = document.createElement('img');
+                    img.src = item.src;
+                    img.alt = item.desc || 'i-b image';
+                    img.loading = 'lazy';
+                    img.onerror = function() {
+                        this.src =
+                            'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="180" viewBox="0 0 200 180"%3E%3Crect width="200" height="180" fill="%231a2d4e"/%3E%3Ctext x="100" y="90" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="16"%3E🖼%3C/text%3E%3C/svg%3E';
+                    };
+                    wrapper.appendChild(img);
 
-                const zoomBtn = document.createElement('button');
-                zoomBtn.className = 'zoom-btn';
-                zoomBtn.innerHTML = '🔍 Zoom';
-                zoomBtn.setAttribute('aria-label', 'Zoom preview');
-                zoomBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openModal(imgData.src, imgData.desc || 'Image');
-                });
-                wrapper.appendChild(zoomBtn);
+                    const overlay = document.createElement('div');
+                    overlay.className = 'img-overlay';
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = 'View Image';
+                    overlay.appendChild(labelSpan);
+                    wrapper.appendChild(overlay);
 
-                card.appendChild(wrapper);
+                    const zoomBtn = document.createElement('button');
+                    zoomBtn.className = 'zoom-btn';
+                    zoomBtn.innerHTML = '🔍 Zoom';
+                    zoomBtn.setAttribute('aria-label', 'Zoom preview');
+                    zoomBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openImageModal(item.src, item.desc || 'Image');
+                    });
+                    wrapper.appendChild(zoomBtn);
 
-                const label = document.createElement('div');
-                label.className = 'img-label';
-                const short = (imgData.desc || '').length > 35 ? imgData.desc.slice(0, 35) + '…' : (imgData.desc ||
-                    'Image');
-                label.textContent = short;
-                card.appendChild(label);
+                    card.appendChild(wrapper);
 
-                imageGrid.appendChild(card);
+                    const label = document.createElement('div');
+                    label.className = 'img-label';
+                    const short = (item.desc || '').length > 35 ? item.desc.slice(0, 35) + '…' : (item.desc || 'Image');
+                    label.textContent = short;
+                    card.appendChild(label);
+
+                    imageGrid.appendChild(card);
+                }
             });
         }
 
@@ -1439,7 +1645,7 @@
                     <div class="empty-state">
                         <span class="big-icon">📚</span>
                         <h3>No chapters added</h3>
-                        <p>Start by creating your first chapter. Add a name, order, and images.</p>
+                        <p>Start by creating your first chapter. Add a name, order, and media items.</p>
                         <button class="btn-add-first" id="emptyAddBtn">➕ Add First Chapter</button>
                     </div>
                 </div>
@@ -1542,7 +1748,7 @@
         }
 
         // ------------------------------------------------------------------
-        // 16. ADMIN: ADD / EDIT / DELETE
+        // 16. ADMIN: ADD / EDIT / DELETE (with Image + Text support)
         // ------------------------------------------------------------------
         manageChapterBtn.addEventListener('click', () => {
             const ch = chaptersData.find(c => c.id === currentChapterId);
@@ -1561,65 +1767,92 @@
                 editorModalTitle.textContent = `✏️ Edit Chapter: ${ch.name}`;
                 editChapterName.value = ch.name || '';
                 editChapterOrder.value = ch.order || '';
-                renderImageEntries(ch.images || []);
+                renderMediaEntries(ch.images || []);
             } else {
                 editorModalTitle.textContent = '➕ Add New Chapter';
                 editChapterName.value = '';
                 editChapterOrder.value = '';
-                renderImageEntries([]);
+                renderMediaEntries([]);
             }
             adminEditorModal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
-        function renderImageEntries(images) {
+        function renderMediaEntries(items) {
             editImagesContainer.innerHTML = '';
-            if (!images || images.length === 0) {
-                const entry = createImageEntry('', '', 0);
+            if (!items || items.length === 0) {
+                const entry = createMediaEntry('image', {}, 0);
                 editImagesContainer.appendChild(entry);
             } else {
-                images.forEach((img, idx) => {
-                    const entry = createImageEntry(img.src, img.desc, idx);
+                items.forEach((item, idx) => {
+                    const type = item.type || (item.src ? 'image' : 'text');
+                    const entry = createMediaEntry(type, item, idx);
                     editImagesContainer.appendChild(entry);
                 });
             }
         }
 
-        function createImageEntry(src, desc, idx) {
+        function createMediaEntry(type, data, idx) {
             const div = document.createElement('div');
             div.className = 'image-entry';
 
-            const srcInput = document.createElement('input');
-            srcInput.type = 'text';
-            srcInput.placeholder = 'Image URL';
-            srcInput.value = src || '';
-            srcInput.dataset.field = 'src';
+            // Row 1: Type selector + Remove button
+            const row1 = document.createElement('div');
+            row1.className = 'entry-row';
 
-            const descInput = document.createElement('input');
-            descInput.type = 'text';
-            descInput.placeholder = 'Description';
-            descInput.value = desc || '';
-            descInput.dataset.field = 'desc';
+            const typeSelect = document.createElement('select');
+            typeSelect.innerHTML = `<option value="image">🖼️ Image</option><option value="text">📄 Text</option>`;
+            typeSelect.value = type || 'image';
 
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-img-btn';
             removeBtn.innerHTML = '✕';
             removeBtn.addEventListener('click', () => {
-                if (editImagesContainer.children.length > 1) {
-                    div.remove();
-                } else {
-                    showToast('At least one image entry is required');
-                }
+                if (editImagesContainer.children.length > 1) div.remove();
+                else showToast('At least one item is required');
             });
 
-            div.appendChild(srcInput);
-            div.appendChild(descInput);
-            div.appendChild(removeBtn);
+            row1.appendChild(typeSelect);
+            row1.appendChild(removeBtn);
+            div.appendChild(row1);
+
+            // Image fields
+            const imageFields = document.createElement('div');
+            imageFields.className = 'entry-row';
+            imageFields.style.display = 'none';
+            imageFields.innerHTML = `
+                <input type="text" placeholder="Image URL" value="${data.src || ''}" data-field="src" />
+                <input type="text" placeholder="Description" value="${data.desc || ''}" data-field="desc" />
+            `;
+
+            // Text fields
+            const textFields = document.createElement('div');
+            textFields.className = 'entry-row';
+            textFields.style.display = 'none';
+            textFields.innerHTML = `
+                <input type="text" placeholder="Title" value="${data.title || ''}" data-field="title" />
+                <textarea placeholder="Full Text Content (supports long text)" rows="3" data-field="content">${data.content || ''}</textarea>
+            `;
+
+            const toggleFields = () => {
+                if (typeSelect.value === 'image') {
+                    imageFields.style.display = '';
+                    textFields.style.display = 'none';
+                } else {
+                    imageFields.style.display = 'none';
+                    textFields.style.display = '';
+                }
+            };
+            typeSelect.addEventListener('change', toggleFields);
+            toggleFields(); // initial state
+
+            div.appendChild(imageFields);
+            div.appendChild(textFields);
             return div;
         }
 
         addImageEntryBtn.addEventListener('click', () => {
-            const entry = createImageEntry('', '', editImagesContainer.children.length);
+            const entry = createMediaEntry('image', {}, editImagesContainer.children.length);
             editImagesContainer.appendChild(entry);
         });
 
@@ -1646,22 +1879,36 @@
             }
 
             const entries = editImagesContainer.querySelectorAll('.image-entry');
-            const images = [];
+            const items = [];
+            let hasError = false;
             entries.forEach(entry => {
-                const srcInput = entry.querySelector('input[data-field="src"]');
-                const descInput = entry.querySelector('input[data-field="desc"]');
-                const src = (srcInput ? srcInput.value : '').trim();
-                const desc = (descInput ? descInput.value : '').trim();
-                if (src) {
-                    images.push({ src, desc });
+                const typeSelect = entry.querySelector('select');
+                const type = typeSelect.value;
+                if (type === 'image') {
+                    const src = entry.querySelector('input[data-field="src"]').value.trim();
+                    const desc = entry.querySelector('input[data-field="desc"]').value.trim();
+                    if (src) {
+                        items.push({ type: 'image', src, desc });
+                    } else {
+                        hasError = true;
+                    }
+                } else {
+                    const title = entry.querySelector('input[data-field="title"]').value.trim();
+                    const content = entry.querySelector('textarea[data-field="content"]').value.trim();
+                    if (title || content) {
+                        items.push({ type: 'text', title, content });
+                    } else {
+                        hasError = true;
+                    }
                 }
             });
-            if (images.length === 0) {
-                showToast('⚠️ At least one image with URL is required');
+
+            if (hasError || items.length === 0) {
+                showToast('⚠️ Please fill in at least one complete media item (Image with URL, or Text with Title/Content).');
                 return;
             }
 
-            const data = { name, order, images };
+            const data = { name, order, images: items };
             try {
                 if (editingChapterId) {
                     const ref = doc(db, 'chapters', editingChapterId);
@@ -1794,7 +2041,7 @@
             }
 
             setupVisitCounter();
-            showToast('📚 Admin ready — add your chapters');
+            showToast('📚 Admin ready — add your chapters & notes');
         }
 
         init();
